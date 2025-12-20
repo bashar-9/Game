@@ -66,7 +66,10 @@ export default function Home() {
   }, [gameState]);
 
   return (
-    <main className="relative w-screen h-screen overflow-hidden bg-black">
+    <main
+      className="relative w-screen h-screen overflow-hidden bg-black touch-none select-none overscroll-none"
+      onTouchMove={(e) => e.preventDefault()}
+    >
       {gameState === 'start' && (
         <StartScreen onStart={startGame} />
       )}

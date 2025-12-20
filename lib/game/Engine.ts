@@ -74,7 +74,9 @@ export class Engine {
             e.preventDefault();
             for (let i = 0; i < e.changedTouches.length; i++) {
                 const t = e.changedTouches[i];
-                if (!this.joystick.active && t.clientX < window.innerWidth / 2) {
+                // Increased activation zone to 75% to account for broad thumbs/small screens
+                // and ignore inputs clearly meant for the right side (action buttons if any, or just empty)
+                if (!this.joystick.active && t.clientX < window.innerWidth * 0.75) {
                     this.joystick.active = true;
                     this.joystick.id = t.identifier;
                     this.joystick.originX = t.clientX;

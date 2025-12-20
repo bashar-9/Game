@@ -30,6 +30,7 @@ export default function GameCanvas({ diffMode, gameRunning, onEngineInit }: Game
         <canvas
             ref={canvasRef}
             className="fixed inset-0 w-full h-full bg-[#0a0a12] touch-none"
+            style={{ touchAction: 'none' }}
         />
     );
 }

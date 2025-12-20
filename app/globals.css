@@ -6,12 +6,20 @@
   --background-end-rgb: 0, 0, 0;
 }
 
+html,
 body {
   color: rgb(var(--foreground-rgb));
   background: black;
   overflow: hidden;
-  /* Prevent scrolling */
+  /* Prevent scrolling and bounce effects entirely */
   user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  overscroll-behavior: none;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  /* Lock body in place */
 }
 
 /* Custom Animation Utils */

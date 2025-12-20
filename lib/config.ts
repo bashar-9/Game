@@ -48,7 +48,7 @@ export const BASE_STATS = {
         swarm: {
             radius: 8,
             radiusMobile: 6,
-            speedBase: 3.5,
+            speedBase: 2,
             hpBase: 15,
             xpValue: 2,
             damageBase: 5,
@@ -57,7 +57,7 @@ export const BASE_STATS = {
         tank: {
             radius: 24,
             radiusMobile: 16,
-            speed: 1.2,
+            speed: 1.02,
             hpBase: 90,
             xpValue: 15,
             damageBase: 25,
@@ -66,7 +66,7 @@ export const BASE_STATS = {
         basic: {
             radius: 12,
             radiusMobile: 9,
-            speedBase: 2,
+            speedBase: 1.77,
             hpBase: 35,
             xpValue: 5,
             damageBase: 10,
