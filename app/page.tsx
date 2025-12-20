@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import GameCanvas from '@/components/game/GameCanvas';
 import HUD from '@/components/ui/HUD';
 import StartScreen from '@/components/ui/StartScreen';
@@ -9,11 +9,18 @@ import UpgradeMenu from '@/components/ui/UpgradeMenu';
 import PauseMenu from '@/components/ui/PauseMenu';
 import { useGameStore } from '@/store/useGameStore';
 import { Engine } from '@/lib/game/Engine';
+import { resetUpgrades } from '@/lib/config';
 
 export default function Home() {
+
   const [gameState, setGameState] = useState<'start' | 'playing'>('start');
   const [diffMode, setDiffMode] = useState<'easy' | 'normal' | 'hard'>('normal');
   const engineRef = useRef<Engine | null>(null);
+
+  // Stable callback to initialization the engine ref
+  const handleEngineInit = useCallback((engine: Engine) => {
+    engineRef.current = engine;
+  }, []);
 
   const isGameOver = useGameStore(s => s.isGameOver);
   const isUpgradeMenuOpen = useGameStore(s => s.isUpgradeMenuOpen);
@@ -21,6 +28,7 @@ export default function Home() {
   const resetStore = useGameStore(s => s.reset);
 
   const startGame = (difficulty: 'easy' | 'normal' | 'hard') => {
+    resetUpgrades();
     resetStore();
     setDiffMode(difficulty);
     setGameState('playing');
@@ -68,7 +76,7 @@ export default function Home() {
           <GameCanvas
             diffMode={diffMode}
             gameRunning={true}
-            onEngineInit={(engine) => engineRef.current = engine}
+            onEngineInit={handleEngineInit}
           />
           <HUD />
 

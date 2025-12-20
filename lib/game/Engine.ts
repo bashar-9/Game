@@ -7,6 +7,7 @@ import { Particle } from './Particle';
 import { drawJoystick, getDifficulty } from '../utils';
 import { useGameStore } from '../../store/useGameStore';
 import { JoystickState } from './types';
+import { soundManager } from './SoundManager';
 
 export class Engine {
     ctx: CanvasRenderingContext2D;
@@ -55,6 +56,12 @@ export class Engine {
 
         this.bindEvents();
         this.resize();
+
+        // Audio Init
+        soundManager.preload().then(() => {
+            soundManager.playBGM();
+        });
+
         this.startLoop();
     }
 
@@ -163,6 +170,7 @@ export class Engine {
             if (e.hp <= 0) {
                 this.pickups.push(new Pickup(e.x, e.y, e.xpValue));
                 this.enemies.splice(i, 1);
+                soundManager.play('explosion', 0.2);
 
                 const currentKills = useGameStore.getState().killCount + 1;
                 useGameStore.getState().setKillCount(currentKills);
@@ -225,6 +233,8 @@ export class Engine {
 
     endGame() {
         useGameStore.getState().setGameOver(true);
+        soundManager.play('game_over', 0.3);
+        soundManager.stopBGM();
     }
 
     selectUpgrade(upgradeId: string) {

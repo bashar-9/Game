@@ -1,5 +1,6 @@
 import { CONFIG } from '../config';
 import { IPlayer } from './types';
+import { soundManager } from './SoundManager';
 
 export class Pickup {
     x: number;
@@ -27,6 +28,9 @@ export class Pickup {
             this.y += Math.sin(angle) * speed;
             if (dist < player.radius + 10) {
                 player.gainXp(this.value);
+                // Dynamic import or check if soundManager is available globally/imported
+                // Since Pickup is in same dir as SoundManager
+                soundManager.play('collect', 0.1);
                 this.dead = true;
             }
         }

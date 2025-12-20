@@ -2,10 +2,18 @@
 
 import { useGameStore } from '@/store/useGameStore';
 import { formatTime } from '@/lib/utils';
-import { Heart, Skull } from 'lucide-react';
+import { Heart, Skull, Volume2, VolumeX } from 'lucide-react';
+import { useState } from 'react';
+import { soundManager } from '@/lib/game/SoundManager';
 
 export default function HUD() {
     const { hp, maxHp, level, xp, xpToNext, time, killCount } = useGameStore();
+    const [muted, setMuted] = useState(false);
+
+    const toggleMute = () => {
+        const isMuted = soundManager.toggleMute();
+        setMuted(isMuted);
+    };
 
     const hpPercent = (hp / maxHp) * 100;
     const xpPercent = (xp / xpToNext) * 100;
@@ -40,6 +48,14 @@ export default function HUD() {
                     <Skull className="w-6 h-6" />
                     <span>{killCount}</span>
                 </div>
+
+                {/* Audio Toggle */}
+                <button
+                    onClick={toggleMute}
+                    className="pointer-events-auto p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors backdrop-blur-md"
+                >
+                    {muted ? <VolumeX className="w-5 h-5 text-gray-400" /> : <Volume2 className="w-5 h-5 text-[#00ffcc]" />}
+                </button>
             </div>
 
             {/* Bottom Bar (XP) */}

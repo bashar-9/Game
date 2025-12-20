@@ -2,6 +2,7 @@ import { BASE_STATS, DIFFICULTY_SETTINGS, CONFIG } from '../config';
 import { Bullet } from './Bullet';
 import { Enemy } from './Enemy';
 import { JoystickState } from './types';
+import { soundManager } from './SoundManager';
 
 export interface PlayerCallbacks {
     onUpdateStats: (hp: number, maxHp: number, xp: number, xpToNext: number, level: number) => void;
@@ -171,6 +172,7 @@ export class Player {
             const vy = Math.sin(currentAngle) * this.bulletSpeed;
             bullets.push(new Bullet(this.x, this.y, vx, vy, this.damage, this.pierce, this.bulletSize));
         }
+        soundManager.play('shoot', 0.05);
     }
 
     gainXp(amount: number) {
@@ -189,6 +191,7 @@ export class Player {
 
     takeDamage(amount: number) {
         this.hp -= amount;
+        soundManager.play('damage', 0.3);
         this.callbacks.onCreateParticles(this.x, this.y, 5, CONFIG.COLORS.danger);
         this.syncStats();
         if (this.hp <= 0) this.callbacks.onGameOver();

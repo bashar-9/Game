@@ -138,3 +138,7 @@ export const UPGRADES_LIST: Upgrade[] = [
         evoName: 'Supernova', evoDesc: 'EVOLUTION: Massive Radius & Double Burn.', evoApply: (p: IPlayer) => { p.repulsionLevel += 5; }
     }
 ];
+
+export const resetUpgrades = () => {
+    UPGRADES_LIST.forEach(u => u.count = 0);
+};
