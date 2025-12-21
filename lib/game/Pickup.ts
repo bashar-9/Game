@@ -9,10 +9,13 @@ export class Pickup {
     magnetized: boolean;
     dead: boolean;
 
-    constructor(x: number, y: number, value: number) {
+    tier: number; // 1, 2, or 3
+
+    constructor(x: number, y: number, value: number, tier: number = 1) {
         this.x = x;
         this.y = y;
         this.value = value;
+        this.tier = tier;
         this.magnetized = false;
         this.dead = false;
     }
@@ -37,14 +40,36 @@ export class Pickup {
     }
 
     draw(ctx: CanvasRenderingContext2D) {
-        ctx.fillStyle = CONFIG.COLORS.xp;
+        // Colors for tiers
+        // Tier 1 (1x): default (Yellow)
+        // Tier 2 (2x): Cyan/Blue
+        // Tier 3 (4x): Purple/Magenta
+        let color = CONFIG.COLORS.xp;
+        if (this.tier === 2) color = '#00ffff'; // Cyan
+        if (this.tier === 3) color = '#ff00ff'; // Magenta
+        if (this.tier === 4) color = '#ff3300'; // Red (if 4x exists as tier 4? logic used 4x multiplier)
+
+        // Logic maps multiplier to visual tier: 
+        // 1x -> Yellow
+        // 2x -> Cyan
+        // 4x -> Magenta
+
+        ctx.fillStyle = color;
         ctx.beginPath();
         // Using mobile check from CONFIG which might be static for now, or we pass state
-        const s = CONFIG.IS_MOBILE ? 3 : 5;
+        const s = (CONFIG.IS_MOBILE ? 3 : 5) + (this.tier - 1); // Grow slightly with tier
         ctx.moveTo(this.x, this.y - s);
         ctx.lineTo(this.x + s, this.y);
         ctx.lineTo(this.x, this.y + s);
         ctx.lineTo(this.x - s, this.y);
         ctx.fill();
+
+        // Add glow for higher tiers
+        if (this.tier > 1) {
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = color;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
     }
 }

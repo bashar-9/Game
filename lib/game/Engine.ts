@@ -219,7 +219,25 @@ export class Engine {
             const e = this.enemies[i];
             e.update(this.player, this.enemies);
             if (e.hp <= 0) {
-                this.pickups.push(new Pickup(e.x, e.y, e.xpValue));
+                // Drop Logic: Calculate Gem Multiplier
+                let multiplier = 1;
+                const lvl = this.player.level;
+
+                if (lvl >= 15) {
+                    const r = Math.random();
+                    if (r < 0.15) multiplier = 4;      // 15% Chance for 4x
+                    else if (r < 0.30) multiplier = 2; // 15% Chance for 2x
+                    // 70% Chance for 1x
+                } else if (lvl >= 8) {
+                    if (Math.random() < 0.10) multiplier = 2; // 10% Chance for 2x
+                    // 90% Chance for 1x
+                }
+
+                // If existing XP is 2, and multiplier is 4, drop is 8xp.
+                // We keep it simple: drop ONE gem with scaled value.
+                // Ideally, we'd change color in Pickup but for now just value matters.
+                this.pickups.push(new Pickup(e.x, e.y, e.xpValue * multiplier, multiplier));
+
                 this.enemies.splice(i, 1);
                 soundManager.play('explosion', 0.2);
 
