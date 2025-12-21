@@ -36,8 +36,9 @@ export class Bullet {
             const dist = Math.hypot(this.x - e.x, this.y - e.y);
             if (dist < this.radius + e.radius) {
                 e.takeHit(this.damage);
-                e.pushX += this.vx * 0.15;
-                e.pushY += this.vy * 0.15;
+                const mass = e.mass || 1;
+                e.pushX += (this.vx * 0.1) / mass;
+                e.pushY += (this.vy * 0.1) / mass;
                 this.hitList.push(e);
                 this.pierce--;
 

@@ -7,15 +7,19 @@ import { cn } from '@/lib/utils';
 
 interface StartScreenProps {
     onStart: (diff: 'easy' | 'normal' | 'hard') => void;
+    onTitleClick?: () => void;
 }
 
-export default function StartScreen({ onStart }: StartScreenProps) {
+export default function StartScreen({ onStart, onTitleClick }: StartScreenProps) {
     const [difficulty, setDifficulty] = useState<'easy' | 'normal' | 'hard'>('normal');
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm z-50">
             <div className="bg-[#0a0a12] border border-[#00ffcc]/30 p-12 rounded-2xl shadow-[0_0_50px_rgba(0,255,204,0.2)] text-center max-w-2xl w-full mx-4">
-                <h1 className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-t from-[#00ffcc] to-white mb-2 tracking-tighter">
+                <h1
+                    onClick={onTitleClick}
+                    className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-t from-[#00ffcc] to-white mb-2 tracking-tighter cursor-pointer select-none hover:opacity-80 transition-opacity"
+                >
                     VOID SWARM
                 </h1>
                 <p className="text-[#00ffcc]/60 text-xl mb-12 uppercase tracking-widest font-bold">

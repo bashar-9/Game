@@ -7,6 +7,8 @@ import StartScreen from '@/components/ui/StartScreen';
 import GameOverScreen from '@/components/ui/GameOverScreen';
 import UpgradeMenu from '@/components/ui/UpgradeMenu';
 import PauseMenu from '@/components/ui/PauseMenu';
+// Import DevMenu properly
+import DevMenu from '@/components/ui/DevMenu';
 import { useGameStore } from '@/store/useGameStore';
 import { Engine } from '@/lib/game/Engine';
 import { resetUpgrades } from '@/lib/config';
@@ -15,7 +17,11 @@ export default function Home() {
 
   const [gameState, setGameState] = useState<'start' | 'playing'>('start');
   const [diffMode, setDiffMode] = useState<'easy' | 'normal' | 'hard'>('normal');
+  const [showDevMenu, setShowDevMenu] = useState(false);
   const engineRef = useRef<Engine | null>(null);
+
+  // Dev Menu State
+  const [devClicks, setDevClicks] = useState(0);
 
   // Stable callback to initialization the engine ref
   const handleEngineInit = useCallback((engine: Engine) => {
@@ -27,11 +33,20 @@ export default function Home() {
   const isPaused = useGameStore(s => s.isPaused);
   const resetStore = useGameStore(s => s.reset);
 
-  const startGame = (difficulty: 'easy' | 'normal' | 'hard') => {
+  const startGame = (difficulty: 'easy' | 'normal' | 'hard', initialConfig?: { level: number; upgrades: Record<string, number> }) => {
     resetUpgrades();
     resetStore();
     setDiffMode(difficulty);
     setGameState('playing');
+
+    // We need to wait for the engine to mount and init, so we pass this config via a temporary window object or 
+    // better yet, we just wait for the ref to be available in a useEffect, OR we modify GameCanvas to accept init props.
+    // Simpler: Set a global variable or store that the Engine checks on construction.
+    if (initialConfig) {
+      (window as any).__DEV_CONFIG__ = initialConfig;
+    } else {
+      (window as any).__DEV_CONFIG__ = null;
+    }
   };
 
   const handleRestart = () => {
@@ -71,7 +86,29 @@ export default function Home() {
       onTouchMove={(e) => e.preventDefault()}
     >
       {gameState === 'start' && (
-        <StartScreen onStart={startGame} />
+        <>
+          <StartScreen
+            onStart={(diff) => startGame(diff)}
+            onTitleClick={() => {
+              const newClicks = devClicks + 1;
+              setDevClicks(newClicks);
+              if (newClicks >= 5) {
+                setShowDevMenu(true);
+                setDevClicks(0);
+              }
+            }}
+          />
+          {/* Dev Menu Overlay */}
+          {showDevMenu && (
+            <DevMenu
+              onStart={(cfg) => {
+                startGame('normal', cfg);
+                setShowDevMenu(false);
+              }}
+              onClose={() => setShowDevMenu(false)}
+            />
+          )}
+        </>
       )}
 
       {gameState === 'playing' && (
@@ -84,7 +121,7 @@ export default function Home() {
           <HUD />
 
           {isGameOver && <GameOverScreen onRestart={handleRestart} />}
-          {isUpgradeMenuOpen && <UpgradeMenu onSelect={handleUpgradeSelect} />}
+          {isUpgradeMenuOpen && <UpgradeMenu onSelect={handleUpgradeSelect} player={engineRef.current?.player} />}
           {isPaused && !isUpgradeMenuOpen && !isGameOver && (
             <PauseMenu onResume={handleResume} onQuit={handleQuit} />
           )}

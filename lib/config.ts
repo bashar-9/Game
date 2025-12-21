@@ -42,7 +42,7 @@ export const BASE_STATS = {
         regen: 1,
         repulsionBaseRange: 90,
         repulsionBaseRangeMobile: 70,
-        repulsionForce: 0.42
+        repulsionForce: 0.35
     },
     enemies: {
         swarm: {
@@ -89,53 +89,65 @@ export interface Upgrade {
     evoName?: string;
     evoDesc?: string;
     evoApply?: (p: IPlayer) => void;
+    getCurrentStat?: (count: number) => string;
+    isMaxed?: (p: IPlayer) => boolean;
 }
 
 export const UPGRADES_LIST: Upgrade[] = [
     {
         id: 'multishot', count: 0, name: 'Split-Fire Mod', desc: 'Adds an additional projectile.', stat: '+1 Projectile', icon: '⫚',
         apply: (p: IPlayer) => p.projectileCount++,
-        evoName: 'Bullet Storm', evoDesc: 'EVOLUTION: +2 Projectiles instantly.', evoApply: (p: IPlayer) => p.projectileCount += 2
+        evoName: 'Bullet Storm', evoDesc: 'EVOLUTION: +2 Projectiles instantly.', evoApply: (p: IPlayer) => p.projectileCount += 2,
+        getCurrentStat: (c) => `+${c} Projectile${c > 1 ? 's' : ''}`,
+        isMaxed: (p: IPlayer) => p.projectileCount >= 17
     },
     {
         id: 'haste', count: 0, name: 'Hyper-Loader', desc: 'Increases weapon firing rate.', stat: '+25% Attack Speed', icon: '⚡',
         apply: (p: IPlayer) => p.attackSpeed = Math.max(4, p.attackSpeed * 0.75),
-        evoName: 'Minigun Mech', evoDesc: 'EVOLUTION: Massive Attack Speed boost.', evoApply: (p: IPlayer) => p.attackSpeed = Math.max(2, p.attackSpeed * 0.6)
+        evoName: 'Minigun Mech', evoDesc: 'EVOLUTION: Massive Attack Speed boost.', evoApply: (p: IPlayer) => p.attackSpeed = Math.max(2, p.attackSpeed * 0.6),
+        getCurrentStat: (c) => `+${Math.round((Math.pow(1.25, c) - 1) * 100)}% Atk Spd`
     },
     {
         id: 'damage', count: 0, name: 'Plasma Core', desc: 'Increases raw damage output.', stat: '+20% Damage', icon: '💥',
         apply: (p: IPlayer) => p.damage = Math.floor(p.damage * 1.2),
-        evoName: 'Fusion Reactor', evoDesc: 'EVOLUTION: +50 Base Damage.', evoApply: (p: IPlayer) => p.damage += 50
+        evoName: 'Fusion Reactor', evoDesc: 'EVOLUTION: +50 Base Damage.', evoApply: (p: IPlayer) => p.damage += 50,
+        getCurrentStat: (c) => `+${Math.round((Math.pow(1.2, c) - 1) * 100)}% Damage`
     },
     {
         id: 'speed', count: 0, name: 'Ionic Thrusters', desc: 'Enhances movement speed.', stat: '+15% Move Speed', icon: '👟',
         apply: (p: IPlayer) => p.speed *= 1.15,
-        evoName: 'Warp Drive', evoDesc: 'EVOLUTION: Massive Speed + Max HP.', evoApply: (p: IPlayer) => { p.speed *= 1.4; p.maxHp += 50; p.hp += 50; }
+        evoName: 'Warp Drive', evoDesc: 'EVOLUTION: Massive Speed + Max HP.', evoApply: (p: IPlayer) => { p.speed *= 1.4; p.maxHp += 50; p.hp += 50; },
+        getCurrentStat: (c) => `+${Math.round((Math.pow(1.15, c) - 1) * 100)}% Speed`
     },
     {
         id: 'pierce', count: 0, name: 'Tungsten Rounds', desc: 'Projectiles punch through targets.', stat: '+1 Pierce', icon: '🏹',
         apply: (p: IPlayer) => p.pierce++,
-        evoName: 'Spectral Shells', evoDesc: 'EVOLUTION: +3 Pierce & Velocity.', evoApply: (p: IPlayer) => { p.pierce += 3; p.bulletSpeed += 5; }
+        evoName: 'Spectral Shells', evoDesc: 'EVOLUTION: +3 Pierce & Velocity.', evoApply: (p: IPlayer) => { p.pierce += 3; p.bulletSpeed += 5; },
+        getCurrentStat: (c) => `+${c} Pierce`
     },
     {
         id: 'maxhp', count: 0, name: 'Titan Plating', desc: 'Reinforces hull integrity.', stat: '+50 Max HP', icon: '🛡️',
         apply: (p: IPlayer) => { p.maxHp += 50; p.hp += 50; },
-        evoName: 'Behemoth Hull', evoDesc: 'EVOLUTION: +100 Max HP & Full Heal.', evoApply: (p: IPlayer) => { p.maxHp += 100; p.hp = p.maxHp; }
+        evoName: 'Behemoth Hull', evoDesc: 'EVOLUTION: +100 Max HP & Full Heal.', evoApply: (p: IPlayer) => { p.maxHp += 100; p.hp = p.maxHp; },
+        getCurrentStat: (c) => `+${c * 50} Max HP`
     },
     {
         id: 'regen', count: 0, name: 'Nano Repair', desc: 'Activates passive regeneration.', stat: '+3 HP / Sec', icon: '💊',
         apply: (p: IPlayer) => p.regen += 3,
-        evoName: 'Living Metal', evoDesc: 'EVOLUTION: +10 Regeneration/sec.', evoApply: (p: IPlayer) => p.regen += 10
+        evoName: 'Living Metal', evoDesc: 'EVOLUTION: +10 Regeneration/sec.', evoApply: (p: IPlayer) => p.regen += 10,
+        getCurrentStat: (c) => `+${c * 3} HP / Sec`
     },
     {
         id: 'size', count: 0, name: 'High Caliber', desc: 'Projectiles become larger.', stat: '+50% Bullet Size', icon: '🌑',
         apply: (p: IPlayer) => p.bulletSize *= 1.5,
-        evoName: 'Graviton Rounds', evoDesc: 'EVOLUTION: +100% Bullet Size.', evoApply: (p: IPlayer) => p.bulletSize *= 2.0
+        evoName: 'Graviton Rounds', evoDesc: 'EVOLUTION: +100% Bullet Size.', evoApply: (p: IPlayer) => p.bulletSize *= 2.0,
+        getCurrentStat: (c) => `+${Math.round((Math.pow(1.5, c) - 1) * 100)}% Size`
     },
     {
         id: 'repulsion', count: 0, name: 'Repulsion Field', desc: 'Lvl 1-4: Area. Lvl 5+: Force & Burn.', stat: '+Upgrade', icon: '⭕',
         apply: (p: IPlayer) => p.repulsionLevel++,
-        evoName: 'Supernova', evoDesc: 'EVOLUTION: Massive Radius & Double Burn.', evoApply: (p: IPlayer) => { p.repulsionLevel += 5; }
+        evoName: 'Supernova', evoDesc: 'EVOLUTION: Massive Radius & Double Burn.', evoApply: (p: IPlayer) => { p.repulsionLevel += 5; },
+        getCurrentStat: (c) => `Level ${c} Active`
     }
 ];
 

@@ -163,11 +163,16 @@ export class Player {
 
     shoot(target: Enemy, bullets: Bullet[]) {
         const angle = Math.atan2(target.y - this.y, target.x - this.x);
-        const spread = 0.2;
-        const startAngle = angle - (spread * (this.projectileCount - 1)) / 2;
+
+        // Spread logic: Max 180 degrees (PI) total spread
+        const defaultSpread = 0.2;
+        const totalSpread = Math.min((this.projectileCount - 1) * defaultSpread, Math.PI);
+        const spreadIter = this.projectileCount > 1 ? totalSpread / (this.projectileCount - 1) : 0;
+
+        const startAngle = angle - totalSpread / 2;
 
         for (let i = 0; i < this.projectileCount; i++) {
-            const currentAngle = startAngle + i * spread;
+            const currentAngle = startAngle + i * spreadIter;
             const vx = Math.cos(currentAngle) * this.bulletSpeed;
             const vy = Math.sin(currentAngle) * this.bulletSpeed;
             bullets.push(new Bullet(this.x, this.y, vx, vy, this.damage, this.pierce, this.bulletSize));

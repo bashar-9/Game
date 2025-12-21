@@ -1,4 +1,4 @@
-import { CONFIG, DIFFICULTY_SETTINGS, UPGRADES_LIST } from '../config';
+import { CONFIG, DIFFICULTY_SETTINGS, UPGRADES_LIST, resetUpgrades } from '../config';
 import { Player } from './Player';
 import { Enemy } from './Enemy';
 import { Bullet } from './Bullet';
@@ -33,6 +33,9 @@ export class Engine {
     diffMode: 'easy' | 'normal' | 'hard' = 'normal';
 
     constructor(canvas: HTMLCanvasElement, diffMode: 'easy' | 'normal' | 'hard' = 'normal') {
+        // Reset global upgrade state to prevent Sticky/Double-Init issues
+        resetUpgrades();
+
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d')!;
         this.diffMode = diffMode;
@@ -53,6 +56,52 @@ export class Engine {
                 for (let i = 0; i < count; i++) this.particles.push(new Particle(x, y, color));
             }
         });
+
+        // CHECK FOR DEV CONFIG
+        const devConfig = (window as any).__DEV_CONFIG__;
+        if (devConfig) {
+            console.log('APPLYING DEV CONFIG:', devConfig);
+
+            // Set Level
+            if (devConfig.level && devConfig.level > 1) {
+                console.log(`Setting Level from ${this.player.level} to ${devConfig.level}`);
+                for (let i = 1; i < devConfig.level; i++) {
+                    // Manually scale XP/HP without triggering UI level up
+                    this.player.level++;
+                    this.player.xpToNext = Math.floor(this.player.xpToNext * 1.15);
+                    this.player.hp = Math.min(this.player.hp + (this.player.maxHp * 0.3), this.player.maxHp);
+                }
+                console.log(`Final Player Level: ${this.player.level}`);
+            }
+
+            // Set Upgrades
+            if (devConfig.upgrades) {
+                Object.entries(devConfig.upgrades).forEach(([id, count]) => {
+                    const upgrade = UPGRADES_LIST.find(u => u.id === id);
+                    if (upgrade) {
+                        for (let i = 0; i < (count as number); i++) {
+                            // Logic to apply upgrade multiple times
+                            // We reuse selectUpgrade logic roughly but bypass UI state
+                            if (upgrade.evoName) {
+                                if (upgrade.id === 'repulsion') {
+                                    if (upgrade.count + 1 === 5 && upgrade.evoApply) upgrade.evoApply(this.player);
+                                    else upgrade.apply(this.player);
+                                } else {
+                                    if ((upgrade.count + 1) % 5 === 0 && upgrade.evoApply) upgrade.evoApply(this.player);
+                                    else upgrade.apply(this.player);
+                                }
+                            } else {
+                                upgrade.apply(this.player);
+                            }
+                            upgrade.count++;
+                        }
+                    }
+                });
+            }
+
+            // Sync initial state to UI
+            this.player.syncStats();
+        }
 
         this.bindEvents();
         this.resize();
@@ -242,7 +291,20 @@ export class Engine {
     selectUpgrade(upgradeId: string) {
         const upgrade = UPGRADES_LIST.find(u => u.id === upgradeId);
         if (upgrade) {
-            if (upgrade.count >= 5 && upgrade.evoApply) {
+            const nextLevel = upgrade.count + 1;
+            let isEvo = false;
+
+            if (upgrade.evoName) {
+                if (upgrade.id === 'repulsion') {
+                    // Repulsion: Evolve ONLY at Level 5
+                    isEvo = nextLevel === 5;
+                } else {
+                    // Others: Evolve at 5, 10, 15, etc.
+                    isEvo = nextLevel > 0 && nextLevel % 5 === 0;
+                }
+            }
+
+            if (isEvo && upgrade.evoApply) {
                 upgrade.evoApply(this.player);
             } else {
                 upgrade.apply(this.player);

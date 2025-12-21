@@ -31,6 +31,7 @@ export interface IEnemy {
     takeHit: (amount: number) => void;
     pushX: number;
     pushY: number;
+    mass?: number;
 }
 
 export interface JoystickState {

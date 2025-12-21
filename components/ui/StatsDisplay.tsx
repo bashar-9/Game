@@ -57,8 +57,8 @@ export function StatsDisplay() {
             {acquiredUpgrades.length > 0 && (
                 <div className="border-t border-white/10 pt-6 mb-6">
                     <h3 className="text-white/50 text-xs uppercase tracking-widest mb-4">System Upgrades</h3>
-                    {/* MODIFIED: grid-cols-3 on mobile to show 3 cards per row */}
-                    <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-3">
+                    {/* MODIFIED: grid-cols-3 on mobile to show 3 cards per row, 4 on desktop */}
+                    <div className="grid grid-cols-3 md:grid-cols-4 gap-2 md:gap-3">
                         {acquiredUpgrades.map(u => (
                             <div key={u.id} className="relative group flex flex-col items-center justify-between p-2 md:p-3 bg-white/5 rounded-xl border border-white/10 hover:border-[#ffee00] hover:bg-[#ffee00]/5 transition-all duration-300 min-h-[90px]">
                                 <span className="absolute top-1 right-1 text-[#ffee00] font-mono text-[9px] bg-[#ffee00]/10 px-1 py-0.5 rounded">Lvl {u.count}</span>
@@ -69,7 +69,9 @@ export function StatsDisplay() {
 
                                 <div className="text-center w-full">
                                     <h4 className="text-white font-bold text-[10px] truncate w-full mb-0.5">{u.name}</h4>
-                                    <p className="text-white/40 text-[9px] leading-tight line-clamp-2 min-h-[2em]">{u.stat}</p>
+                                    <p className="text-white/40 text-[9px] leading-tight line-clamp-2 min-h-[2em]">
+                                        {u.getCurrentStat ? u.getCurrentStat(u.count) : u.stat}
+                                    </p>
                                 </div>
                             </div>
                         ))}
