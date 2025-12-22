@@ -48,5 +48,17 @@ export function drawJoystick(ctx: CanvasRenderingContext2D, joystick: JoystickSt
 }
 
 export function getDifficulty(t: number): number {
-    return 1 + Math.floor(t / 25) * 0.5;
+    // 0-5 mins: Linear 1.0 -> 6.0 (approx)
+    const linear = 1 + Math.floor(t / 30) * 0.5;
+
+    // 5+ mins: Quadratic Kicker
+    // At 10 mins (600s): (300/60)^2 * 0.1 = 25 * 0.1 = +2.5
+    // At 20 mins (1200s): (900/60)^2 * 0.1 = 225 * 0.1 = +22.5 (Insane)
+    let quadratic = 0;
+    if (t > 300) {
+        const minutesOver = (t - 300) / 60;
+        quadratic = Math.pow(minutesOver, 2) * 0.1;
+    }
+
+    return linear + quadratic;
 }

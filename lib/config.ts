@@ -21,7 +21,7 @@ export const CONFIG = {
 export const DIFFICULTY_SETTINGS = {
     easy: { hpMult: 0.7, dmgMult: 0.5, spawnMult: 0.8, playerHpBonus: 100 },
     normal: { hpMult: 1.0, dmgMult: 1.0, spawnMult: 1.0, playerHpBonus: 0 },
-    hard: { hpMult: 1.4, dmgMult: 1.5, spawnMult: 1.3, playerHpBonus: -50 }
+    hard: { hpMult: 1.4, dmgMult: 1.5, spawnMult: 1.2, playerHpBonus: -25 } // Reduced spawnMult 1.3->1.2, HpBonus -50->-25
 };
 
 export const BASE_STATS = {
@@ -130,13 +130,13 @@ export const UPGRADES_LIST: Upgrade[] = [
     {
         id: 'maxhp', count: 0, name: 'Titan Plating', desc: 'Reinforces hull integrity.', stat: '+50 Max HP', icon: '🛡️',
         apply: (p: IPlayer) => { p.maxHp += 50; p.hp += 50; },
-        evoName: 'Behemoth Hull', evoDesc: 'EVOLUTION: +100 Max HP & Full Heal.', evoApply: (p: IPlayer) => { p.maxHp += 100; p.hp = p.maxHp; },
+        evoName: 'Behemoth Hull', evoDesc: 'EVOLUTION: +75 Max HP & 50% Heal.', evoApply: (p: IPlayer) => { p.maxHp += 75; p.hp = Math.min(p.maxHp, p.hp + (p.maxHp * 0.5)); },
         getCurrentStat: (c) => `+${c * 50} Max HP`
     },
     {
         id: 'regen', count: 0, name: 'Nano Repair', desc: 'Activates passive regeneration.', stat: '+3 HP / Sec', icon: '💊',
         apply: (p: IPlayer) => p.regen += 3,
-        evoName: 'Living Metal', evoDesc: 'EVOLUTION: +10 Regeneration/sec.', evoApply: (p: IPlayer) => p.regen += 10,
+        evoName: 'Living Metal', evoDesc: 'EVOLUTION: +5 Regeneration/sec.', evoApply: (p: IPlayer) => p.regen += 5,
         getCurrentStat: (c) => `+${c * 3} HP / Sec`
     },
     {

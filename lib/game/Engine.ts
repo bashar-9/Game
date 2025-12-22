@@ -207,11 +207,11 @@ export class Engine {
         const settings = DIFFICULTY_SETTINGS[this.diffMode];
 
         // Spawn Logic with Early Game Dampener & Late Game Ramp
-        // 0-2 mins: Ramp from 25% to 100% capacity to prevent early overwhelmed state.
-        const earlyGameRamp = Math.min(1.0, 0.25 + (this.gameTime / 120) * 0.75);
+        // 0-3 mins: Ramp from 15% to 100% capacity (was 0-2 mins 25%-100%)
+        const earlyGameRamp = Math.min(1.0, 0.15 + (this.gameTime / 180) * 0.85);
 
-        // Late Game: Cap density at 15x (was 8x) for massive hordes later
-        const densityCap = Math.min(15, this.difficulty);
+        // Late Game: Uncapped density scaling for massive hordes
+        const densityCap = Math.max(1, this.difficulty);
 
         if (Math.random() < 0.02 * settings.spawnMult * densityCap * earlyGameRamp) {
             const types: ('swarm' | 'tank' | 'basic')[] = ['basic'];
