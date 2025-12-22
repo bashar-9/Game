@@ -30,7 +30,7 @@ export const BASE_STATS = {
         radiusMobile: 8,
         baseSpeed: 4,
         baseHp: 300,
-        xpToNext: 20,
+        xpToNext: 50,
         attackSpeed: 25,
         damage: 25,
         projectileCount: 1,
@@ -42,13 +42,15 @@ export const BASE_STATS = {
         regen: 1,
         repulsionBaseRange: 90,
         repulsionBaseRangeMobile: 70,
-        repulsionForce: 0.35
+        repulsionForce: 0.15,
+        critChance: 0.05,
+        critMultiplier: 1.4
     },
     enemies: {
         swarm: {
             radius: 8,
             radiusMobile: 6,
-            speedBase: 2,
+            speedBase: 1.6,
             hpBase: 15,
             xpValue: 2,
             damageBase: 5,
@@ -57,8 +59,8 @@ export const BASE_STATS = {
         tank: {
             radius: 24,
             radiusMobile: 16,
-            speed: 1.02,
-            hpBase: 90,
+            speed: 0.85,
+            hpBase: 60,
             xpValue: 15,
             damageBase: 25,
             mass: 4.0
@@ -66,7 +68,7 @@ export const BASE_STATS = {
         basic: {
             radius: 12,
             radiusMobile: 9,
-            speedBase: 1.77,
+            speedBase: 1.5,
             hpBase: 35,
             xpValue: 5,
             damageBase: 10,
@@ -103,15 +105,15 @@ export const UPGRADES_LIST: Upgrade[] = [
     },
     {
         id: 'haste', count: 0, name: 'Hyper-Loader', desc: 'Increases weapon firing rate.', stat: '+25% Attack Speed', icon: '⚡',
-        apply: (p: IPlayer) => p.attackSpeed = Math.max(4, p.attackSpeed * 0.75),
-        evoName: 'Minigun Mech', evoDesc: 'EVOLUTION: Massive Attack Speed boost.', evoApply: (p: IPlayer) => p.attackSpeed = Math.max(2, p.attackSpeed * 0.6),
-        getCurrentStat: (c) => `+${Math.round((Math.pow(1.25, c) - 1) * 100)}% Atk Spd`
+        apply: (p: IPlayer) => { p.modifiers.attackSpeed += 0.25; (p as any).recalculateStats(); },
+        evoName: 'Minigun Mech', evoDesc: 'EVOLUTION: Massive Attack Speed boost.', evoApply: (p: IPlayer) => { p.modifiers.attackSpeed += 0.6; (p as any).recalculateStats(); },
+        getCurrentStat: (c) => `+${c * 25}% Atk Spd`
     },
     {
         id: 'damage', count: 0, name: 'Plasma Core', desc: 'Increases raw damage output.', stat: '+20% Damage', icon: '💥',
-        apply: (p: IPlayer) => p.damage = Math.floor(p.damage * 1.2),
-        evoName: 'Fusion Reactor', evoDesc: 'EVOLUTION: +50 Base Damage.', evoApply: (p: IPlayer) => p.damage += 50,
-        getCurrentStat: (c) => `+${Math.round((Math.pow(1.2, c) - 1) * 100)}% Damage`
+        apply: (p: IPlayer) => { p.modifiers.damage += 0.2; (p as any).recalculateStats(); },
+        evoName: 'Fusion Reactor', evoDesc: 'EVOLUTION: +50% Bonus Damage.', evoApply: (p: IPlayer) => { p.modifiers.damage += 0.5; (p as any).recalculateStats(); },
+        getCurrentStat: (c) => `+${c * 20}% Damage`
     },
     {
         id: 'speed', count: 0, name: 'Ionic Thrusters', desc: 'Enhances movement speed.', stat: '+15% Move Speed', icon: '👟',
@@ -148,6 +150,18 @@ export const UPGRADES_LIST: Upgrade[] = [
         apply: (p: IPlayer) => p.repulsionLevel++,
         evoName: 'Supernova', evoDesc: 'EVOLUTION: Massive Radius & Double Burn.', evoApply: (p: IPlayer) => { p.repulsionLevel += 5; },
         getCurrentStat: (c) => `Level ${c} Active`
+    },
+    {
+        id: 'critChance', count: 0, name: 'Targeting CPU', desc: 'Increases critical hit frequency.', stat: '+5% Crit Chance', icon: '🎯',
+        apply: (p: IPlayer) => p.critChance = Math.min(1.0, p.critChance + 0.05),
+        evoName: 'Eagle Eye', evoDesc: 'EVOLUTION: +10% Crit Chance.', evoApply: (p: IPlayer) => p.critChance = Math.min(1.0, p.critChance + 0.10),
+        getCurrentStat: (c) => `+${Math.round(c * 5)}% Crit Chance`
+    },
+    {
+        id: 'critDamage', count: 0, name: 'Gauss Coil', desc: 'Increases critical hit damage.', stat: '+5% Crit Dmg', icon: '🔋',
+        apply: (p: IPlayer) => p.critMultiplier += 0.05,
+        evoName: 'Railgun', evoDesc: 'EVOLUTION: +10% Crit Dmg.', evoApply: (p: IPlayer) => p.critMultiplier += 0.10,
+        getCurrentStat: (c) => `+${c * 5}% Crit Dmg`
     }
 ];
 

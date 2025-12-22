@@ -17,6 +17,10 @@ export interface IPlayer {
     pickupRange: number;
     regen: number;
     repulsionLevel: number;
+    modifiers: { damage: number; attackSpeed: number };
+    critChance: number;
+    critMultiplier: number;
+    recalculateStats: () => void;
 
     gainXp: (amount: number) => void;
     takeDamage: (amount: number) => void;
@@ -28,7 +32,7 @@ export interface IEnemy {
     radius: number;
     hp: number;
     maxHp: number;
-    takeHit: (amount: number) => void;
+    takeHit: (amount: number, isCrit?: boolean) => void;
     pushX: number;
     pushY: number;
     mass?: number;

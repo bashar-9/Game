@@ -41,9 +41,11 @@ export class Engine {
         this.diffMode = diffMode;
 
         this.player = new Player(canvas.width, canvas.height, diffMode, {
-            onUpdateStats: (hp, maxHp, xp, xpToNext, level) => {
-                useGameStore.getState().setHp(hp, maxHp);
-                useGameStore.getState().setXp(xp, xpToNext, level);
+            onUpdateStats: (hp, maxHp, xp, xpToNext, level, damage) => {
+                const store = useGameStore.getState();
+                store.setHp(hp, maxHp);
+                store.setXp(xp, xpToNext, level);
+                store.setDamage(damage);
             },
             onLevelUp: () => {
                 this.pauseGame();
@@ -107,9 +109,7 @@ export class Engine {
         this.resize();
 
         // Audio Init
-        soundManager.preload().then(() => {
-            soundManager.playBGM();
-        });
+        soundManager.preload();
 
         this.startLoop();
     }
@@ -205,10 +205,18 @@ export class Engine {
         this.frames++;
 
         const settings = DIFFICULTY_SETTINGS[this.diffMode];
-        if (Math.random() < 0.02 * settings.spawnMult * Math.min(3, this.difficulty)) {
+
+        // Spawn Logic with Early Game Dampener & Late Game Ramp
+        // 0-2 mins: Ramp from 25% to 100% capacity to prevent early overwhelmed state.
+        const earlyGameRamp = Math.min(1.0, 0.25 + (this.gameTime / 120) * 0.75);
+
+        // Late Game: Cap density at 15x (was 8x) for massive hordes later
+        const densityCap = Math.min(15, this.difficulty);
+
+        if (Math.random() < 0.02 * settings.spawnMult * densityCap * earlyGameRamp) {
             const types: ('swarm' | 'tank' | 'basic')[] = ['basic'];
             if (this.gameTime > 30) types.push('swarm');
-            if (this.gameTime > 60) types.push('tank');
+            if (this.gameTime > 120) types.push('tank');
             const type = types[Math.floor(Math.random() * types.length)];
             this.enemies.push(new Enemy(type, this.canvas.width, this.canvas.height, this.player.level, this.diffMode, this.difficulty));
         }

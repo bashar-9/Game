@@ -16,7 +16,7 @@ export function StatsDisplay() {
 
     return (
         <div className="w-full text-left text-sm mb-6 bg-white/5 p-4 rounded-lg border border-white/5">
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="flex flex-col gap-1">
                     <span className="text-white/50 text-xs uppercase tracking-widest">Level</span>
                     <span className="text-white text-xl font-mono">{level}</span>
@@ -27,7 +27,12 @@ export function StatsDisplay() {
                     <span className="text-white text-xl font-mono">{formatTime(time)}</span>
                 </div>
 
-                <div className="flex flex-col gap-1 col-span-2">
+                <div className="flex flex-col gap-1">
+                    <span className="text-white/50 text-xs uppercase tracking-widest">Damage</span>
+                    <span className="text-[#ff0055] text-xl font-mono font-bold">{useGameStore.getState().damage}</span>
+                </div>
+
+                <div className="flex flex-col gap-1 col-span-3">
                     <div className="flex justify-between items-end mb-1">
                         <span className="text-white/50 text-xs uppercase tracking-widest">HP</span>
                         <span className="text-white font-mono text-xs">{Math.floor(hp)} / {maxHp}</span>
@@ -40,7 +45,7 @@ export function StatsDisplay() {
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-1 col-span-2">
+                <div className="flex flex-col gap-1 col-span-3">
                     <div className="flex justify-between items-end mb-1">
                         <span className="text-white/50 text-xs uppercase tracking-widest">XP</span>
                         <span className="text-white font-mono text-xs">{Math.floor(xp)} / {xpToNext}</span>

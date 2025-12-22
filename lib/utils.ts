@@ -11,15 +11,23 @@ export function formatTime(t: number): string {
     return `${m}:${s}`;
 }
 
-export function showDamage(x: number, y: number, amount: number) {
-    if (Math.random() > 0.4) return;
+export function showDamage(x: number, y: number, amount: number, isCrit: boolean = false) {
+    if (Math.random() > 0.4 && !isCrit) return; // Always show crits
     const el = document.createElement('div');
-    el.className = 'damage-popup'; // Ensure this class is in global CSS
+    el.className = 'damage-popup';
     el.style.left = x + 'px';
     el.style.top = y + 'px';
     el.textContent = Math.floor(amount).toString();
+
+    if (isCrit) {
+        el.style.color = '#ffd700'; // Gold
+        el.style.fontSize = '28px';
+        el.style.textShadow = '0 0 10px #ff9900';
+        el.style.zIndex = '101';
+    }
+
     document.body.appendChild(el);
-    setTimeout(() => el.remove(), 600);
+    setTimeout(() => el.remove(), 800);
 }
 
 import { JoystickState } from './game/types';

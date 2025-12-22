@@ -5,7 +5,7 @@ import { JoystickState } from './types';
 import { soundManager } from './SoundManager';
 
 export interface PlayerCallbacks {
-    onUpdateStats: (hp: number, maxHp: number, xp: number, xpToNext: number, level: number) => void;
+    onUpdateStats: (hp: number, maxHp: number, xp: number, xpToNext: number, level: number, damage: number) => void;
     onLevelUp: () => void;
     onGameOver: () => void;
     onCreateParticles: (x: number, y: number, count: number, color: string) => void;
@@ -34,13 +34,17 @@ export class Player {
     pickupRange: number;
     regen: number;
     repulsionLevel: number;
+    critChance: number;
+    critMultiplier: number;
 
+    modifiers: { damage: number; attackSpeed: number };
     callbacks: PlayerCallbacks;
 
     constructor(canvasWidth: number, canvasHeight: number, diffMode: 'easy' | 'normal' | 'hard', callbacks: PlayerCallbacks) {
         this.x = canvasWidth / 2;
         this.y = canvasHeight / 2;
         this.callbacks = callbacks;
+        this.modifiers = { damage: 0, attackSpeed: 0 };
 
         const stats = BASE_STATS.player;
         this.radius = CONFIG.IS_MOBILE ? stats.radiusMobile : stats.radius;
@@ -66,6 +70,33 @@ export class Player {
         this.pickupRange = stats.pickupRange;
         this.regen = stats.regen;
         this.repulsionLevel = 0;
+        this.critChance = stats.critChance;
+        this.critMultiplier = stats.critMultiplier;
+
+        this.recalculateStats();
+    }
+
+    recalculateStats() {
+        // Damage = (Base + Level) * (1 + Modifiers)
+        const baseDmg = BASE_STATS.player.damage + (this.level - 1); // +1 Base DMG per level
+        this.damage = Math.floor(baseDmg * (1 + this.modifiers.damage));
+
+        // Attack Speed (Delay) = BaseDelay / (1 + Modifiers)
+        // Cap speed at 15 shots/sec (4 frames at 60fps)
+        const newDelay = BASE_STATS.player.attackSpeed / (1 + this.modifiers.attackSpeed);
+        this.attackSpeed = Math.max(4, newDelay);
+    }
+
+    // ... (Keep existing update method)
+
+    levelUp() {
+        this.xp -= this.xpToNext;
+        this.level++;
+        this.xpToNext = Math.floor(this.xpToNext * 1.08) + 25;
+        this.hp = Math.min(this.hp + (this.maxHp * 0.3), this.maxHp);
+
+        this.recalculateStats();
+        this.callbacks.onLevelUp();
     }
 
     update(keys: Record<string, boolean>, joystick: JoystickState, enemies: Enemy[], bullets: Bullet[], frameCount: number, canvasWidth: number, canvasHeight: number) {
@@ -138,7 +169,7 @@ export class Player {
                 e.pushY += ny * effectiveForce;
 
                 if (frameCount % 15 === 0) {
-                    const burnDmg = Math.max(2, (this.damage * 0.15) + (extraLevels * 5));
+                    const burnDmg = Math.max(2, (this.damage * 0.25) + (extraLevels * 5));
                     e.takeHit(burnDmg);
                     if (Math.random() > 0.7) {
                         this.callbacks.onCreateParticles(e.x, e.y, 1, '#ff5500');
@@ -175,7 +206,11 @@ export class Player {
             const currentAngle = startAngle + i * spreadIter;
             const vx = Math.cos(currentAngle) * this.bulletSpeed;
             const vy = Math.sin(currentAngle) * this.bulletSpeed;
-            bullets.push(new Bullet(this.x, this.y, vx, vy, this.damage, this.pierce, this.bulletSize));
+
+            const isCrit = Math.random() < this.critChance;
+            const finalDamage = isCrit ? Math.floor(this.damage * this.critMultiplier) : this.damage;
+
+            bullets.push(new Bullet(this.x, this.y, vx, vy, finalDamage, this.pierce, this.bulletSize, isCrit));
         }
         soundManager.play('shoot', 0.05);
     }
@@ -186,13 +221,7 @@ export class Player {
         this.syncStats();
     }
 
-    levelUp() {
-        this.xp -= this.xpToNext;
-        this.level++;
-        this.xpToNext = Math.floor(this.xpToNext * 1.15);
-        this.hp = Math.min(this.hp + (this.maxHp * 0.3), this.maxHp);
-        this.callbacks.onLevelUp();
-    }
+
 
     takeDamage(amount: number) {
         this.hp -= amount;
@@ -203,7 +232,7 @@ export class Player {
     }
 
     syncStats() {
-        this.callbacks.onUpdateStats(this.hp, this.maxHp, this.xp, this.xpToNext, this.level);
+        this.callbacks.onUpdateStats(this.hp, this.maxHp, this.xp, this.xpToNext, this.level, this.damage);
     }
 
     draw(ctx: CanvasRenderingContext2D, frameCount: number) {

@@ -51,17 +51,19 @@ export class Enemy {
         const baseSpeed = (stats as any).speedBase || (stats as any).speed;
         this.speed = baseSpeed + (type === 'swarm' || type === 'basic' ? Math.random() * (type === 'swarm' ? 1.0 : 0.5) : 0);
 
-        this.hp = stats.hpBase * diffLevel * settings.hpMult * levelMult;
-        this.xpValue = stats.xpValue;
-        this.damage = stats.damageBase * settings.dmgMult;
+        // New Scaling: Milder (Additive per level) rather than Multiplicative
+        const diffScale = 1 + (diffLevel * 0.45); // Diff 10 = 5.5x (was 4.5x)
+        this.hp = stats.hpBase * diffScale * settings.hpMult * levelMult;
+        this.xpValue = Math.floor(stats.xpValue * (1 + (diffLevel * 0.15)));
+        this.damage = stats.damageBase * settings.dmgMult * (1 + (diffLevel * 0.15));
         this.mass = stats.mass;
 
         this.maxHp = this.hp;
     }
 
-    takeHit(amount: number) {
+    takeHit(amount: number, isCrit: boolean = false) {
         this.hp -= amount;
-        showDamage(this.x, this.y, amount);
+        showDamage(this.x, this.y, amount, isCrit);
     }
 
     update(player: IPlayer, enemies: Enemy[]) {
