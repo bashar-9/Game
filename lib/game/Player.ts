@@ -3,6 +3,7 @@ import { Bullet } from './Bullet';
 import { Enemy } from './Enemy';
 import { JoystickState } from './types';
 import { soundManager } from './SoundManager';
+import { createNeonSprite, CACHED_SPRITES } from './AssetCache';
 
 export interface PlayerCallbacks {
     onUpdateStats: (hp: number, maxHp: number, xp: number, xpToNext: number, level: number, damage: number) => void;
@@ -41,9 +42,15 @@ export class Player {
     invincibilityTimer: number;
     callbacks: PlayerCallbacks;
 
+    rotation: number;
+
+    static CACHE_SIZE = 80; // Larger for player
+    static CACHE_HALF = 40;
+
     constructor(canvasWidth: number, canvasHeight: number, diffMode: 'easy' | 'normal' | 'hard', callbacks: PlayerCallbacks) {
         this.x = canvasWidth / 2;
         this.y = canvasHeight / 2;
+        this.rotation = 0;
         this.callbacks = callbacks;
         this.invincibilityTimer = 0;
         this.modifiers = { damage: 0, attackSpeed: 0 };
@@ -76,6 +83,8 @@ export class Player {
         this.critMultiplier = stats.critMultiplier;
 
         this.recalculateStats();
+        // Preload
+        this.getSprite();
     }
 
     recalculateStats() {
@@ -129,6 +138,10 @@ export class Player {
             this.y += my * this.speed;
             this.x = Math.max(this.radius, Math.min(canvasWidth - this.radius, this.x));
             this.y = Math.max(this.radius, Math.min(canvasHeight - this.radius, this.y));
+
+            // Update Rotation to face movement
+            // Smooth rotation could be added here, but instant is responsive
+            this.rotation = Math.atan2(my, mx);
         }
 
         // Attack
@@ -136,6 +149,9 @@ export class Player {
         else {
             const target = this.findNearestEnemy(enemies);
             if (target) {
+                // If shooting, face target?
+                // Optional: Override rotation to face target when shooting
+                // this.rotation = Math.atan2(target.y - this.y, target.x - this.x); 
                 this.shoot(target, bullets);
                 this.attackCooldown = this.attackSpeed;
             }
@@ -226,8 +242,6 @@ export class Player {
         this.syncStats();
     }
 
-
-
     takeDamage(amount: number) {
         if (this.invincibilityTimer > 0) return;
 
@@ -243,8 +257,50 @@ export class Player {
         this.callbacks.onUpdateStats(this.hp, this.maxHp, this.xp, this.xpToNext, this.level, this.damage);
     }
 
+    getSprite(): HTMLCanvasElement {
+        const key = 'player_ship';
+        if (CACHED_SPRITES[key]) return CACHED_SPRITES[key];
+
+        const size = Player.CACHE_SIZE;
+        const half = Player.CACHE_HALF;
+
+        CACHED_SPRITES[key] = createNeonSprite(size, size, (ctx, w, h) => {
+            ctx.translate(half, half);
+
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = this.color;
+
+            // Draw Fighter Jet Shape
+            const r = this.radius * 1.5;
+            ctx.beginPath();
+            ctx.moveTo(r, 0);
+            ctx.lineTo(-r * 0.6, r * 0.8);
+            ctx.lineTo(-r * 0.3, 0);
+            ctx.lineTo(-r * 0.6, -r * 0.8);
+            ctx.closePath();
+
+            ctx.fillStyle = '#001a1a';
+            ctx.fill();
+
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = this.color;
+            ctx.stroke();
+
+            // Engine Glow
+            ctx.shadowBlur = 25;
+            ctx.shadowColor = '#00ffff';
+            ctx.fillStyle = '#ccffff';
+            ctx.beginPath();
+            ctx.arc(-r * 0.4, 0, r * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        return CACHED_SPRITES[key];
+    }
+
+
     draw(ctx: CanvasRenderingContext2D, frameCount: number) {
-        // Repulsion Visual
+        // Repulsion Visual (Dynamic, keep drawing it)
         if (this.repulsionLevel > 0) {
             const stats = BASE_STATS.player;
             const levelCapArea = Math.min(this.repulsionLevel, 4);
@@ -262,25 +318,18 @@ export class Player {
             ctx.stroke();
         }
 
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = this.color;
-        ctx.fillStyle = this.color;
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rotation);
 
         // Flash if invincible
         if (this.invincibilityTimer > 0 && Math.floor(frameCount / 4) % 2 === 0) {
             ctx.globalAlpha = 0.5;
         }
 
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
+        const sprite = this.getSprite();
+        ctx.drawImage(sprite, -Player.CACHE_HALF, -Player.CACHE_HALF);
 
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        const inner = CONFIG.IS_MOBILE ? 3 : 5;
-        ctx.arc(this.x, this.y, inner, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
+        ctx.restore();
     }
 }

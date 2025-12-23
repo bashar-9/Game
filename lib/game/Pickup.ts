@@ -55,6 +55,9 @@ export class Pickup {
         // 4x -> Magenta
 
         ctx.fillStyle = color;
+        ctx.shadowBlur = this.tier === 1 ? 6 : 12;
+        ctx.shadowColor = color;
+
         ctx.beginPath();
         // Using mobile check from CONFIG which might be static for now, or we pass state
         const s = (CONFIG.IS_MOBILE ? 3 : 5) + (this.tier - 1); // Grow slightly with tier
@@ -64,12 +67,6 @@ export class Pickup {
         ctx.lineTo(this.x - s, this.y);
         ctx.fill();
 
-        // Add glow for higher tiers
-        if (this.tier > 1) {
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = color;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-        }
+        ctx.shadowBlur = 0;
     }
 }

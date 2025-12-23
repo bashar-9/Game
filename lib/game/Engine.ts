@@ -32,6 +32,8 @@ export class Engine {
     difficulty: number = 1;
     diffMode: 'easy' | 'normal' | 'hard' = 'normal';
 
+    stars: { x: number, y: number, size: number, alpha: number }[] = [];
+
     constructor(canvas: HTMLCanvasElement, diffMode: 'easy' | 'normal' | 'hard' = 'normal') {
         // Reset global upgrade state to prevent Sticky/Double-Init issues
         resetUpgrades();
@@ -39,6 +41,16 @@ export class Engine {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d')!;
         this.diffMode = diffMode;
+
+        // Init Starfield
+        for (let i = 0; i < 150; i++) {
+            this.stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2,
+                alpha: Math.random() * 0.8 + 0.2
+            });
+        }
 
         this.player = new Player(canvas.width, canvas.height, diffMode, {
             onUpdateStats: (hp, maxHp, xp, xpToNext, level, damage) => {
@@ -177,6 +189,7 @@ export class Engine {
             this.player.x = Math.min(this.canvas.width, Math.max(0, this.player.x));
             this.player.y = Math.min(this.canvas.height, Math.max(0, this.player.y));
         }
+        // Resize stars? Or let them be
     }
 
     startLoop() {
@@ -276,13 +289,26 @@ export class Engine {
     }
 
     draw() {
-        this.ctx.fillStyle = CONFIG.COLORS.bg;
+        // Deep Space Background
+        this.ctx.fillStyle = '#050510';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        this.ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+        // Stars
+        this.ctx.fillStyle = '#ffffff';
+        for (const star of this.stars) {
+            this.ctx.globalAlpha = star.alpha;
+            this.ctx.fillRect(star.x, star.y, star.size, star.size);
+        }
+        this.ctx.globalAlpha = 1.0;
+
+        // Cyber Grid
+        this.ctx.strokeStyle = 'rgba(0, 255, 255, 0.05)';
         this.ctx.lineWidth = 1;
         const gridSize = 50;
 
+        // Optional: Pulse grid
+        // const offset = (this.frames % gridSize); 
+        // For now static is fine, maybe slow scroll later if camera moved
         for (let x = 0; x < this.canvas.width; x += gridSize) {
             this.ctx.beginPath(); this.ctx.moveTo(x, 0); this.ctx.lineTo(x, this.canvas.height); this.ctx.stroke();
         }
