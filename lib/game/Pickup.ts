@@ -1,6 +1,7 @@
 import { CONFIG } from '../config';
 import { IPlayer } from './types';
 import { soundManager } from './SoundManager';
+import { createNeonSprite, CACHED_SPRITES } from './AssetCache';
 
 export class Pickup {
     x: number;
@@ -39,34 +40,42 @@ export class Pickup {
         }
     }
 
+
+    getSprite(): HTMLCanvasElement {
+        const key = `pickup_tier_${this.tier}`;
+        if (CACHED_SPRITES[key]) return CACHED_SPRITES[key];
+
+        const s = (CONFIG.IS_MOBILE ? 3 : 5) + (this.tier - 1); // Size based on tier
+        // Cache size needs to be enough for shadow
+        const cacheSize = (s + 20) * 2;
+        const half = cacheSize / 2;
+
+        CACHED_SPRITES[key] = createNeonSprite(cacheSize, cacheSize, (ctx, w, h) => {
+            let color = CONFIG.COLORS.xp;
+            if (this.tier === 2) color = '#00ffff';
+            if (this.tier >= 3) color = '#ff00ff';
+
+            ctx.translate(half, half);
+            ctx.fillStyle = color;
+            ctx.shadowBlur = this.tier === 1 ? 6 : 12;
+            ctx.shadowColor = color;
+
+            ctx.beginPath();
+            ctx.moveTo(0, -s);
+            ctx.lineTo(s, 0);
+            ctx.lineTo(0, s);
+            ctx.lineTo(-s, 0);
+            ctx.fill();
+        });
+
+        return CACHED_SPRITES[key];
+    }
+
     draw(ctx: CanvasRenderingContext2D) {
-        // Colors for tiers
-        // Tier 1 (1x): default (Yellow)
-        // Tier 2 (2x): Cyan/Blue
-        // Tier 3 (4x): Purple/Magenta
-        let color = CONFIG.COLORS.xp;
-        if (this.tier === 2) color = '#00ffff'; // Cyan
-        if (this.tier === 3) color = '#ff00ff'; // Magenta
-        if (this.tier === 4) color = '#ff3300'; // Red (if 4x exists as tier 4? logic used 4x multiplier)
-
-        // Logic maps multiplier to visual tier: 
-        // 1x -> Yellow
-        // 2x -> Cyan
-        // 4x -> Magenta
-
-        ctx.fillStyle = color;
-        ctx.shadowBlur = this.tier === 1 ? 6 : 12;
-        ctx.shadowColor = color;
-
-        ctx.beginPath();
-        // Using mobile check from CONFIG which might be static for now, or we pass state
-        const s = (CONFIG.IS_MOBILE ? 3 : 5) + (this.tier - 1); // Grow slightly with tier
-        ctx.moveTo(this.x, this.y - s);
-        ctx.lineTo(this.x + s, this.y);
-        ctx.lineTo(this.x, this.y + s);
-        ctx.lineTo(this.x - s, this.y);
-        ctx.fill();
-
-        ctx.shadowBlur = 0;
+        const sprite = this.getSprite();
+        // The sprite is centered at half, half. 
+        // We want to draw it at this.x, this.y
+        const half = sprite.width / 2;
+        ctx.drawImage(sprite, this.x - half, this.y - half);
     }
 }
