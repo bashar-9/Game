@@ -242,7 +242,8 @@ export class Engine {
 
         if (Math.random() < 0.02 * settings.spawnMult * densityCap * earlyGameRamp) {
             const types: ('swarm' | 'tank' | 'basic')[] = ['basic'];
-            if (this.gameTime > 30) types.push('swarm');
+            // Allow Swarms (Yellow) basically from the start to provide "fodder"
+            if (this.gameTime > 5) types.push('swarm');
             if (this.gameTime > 120) types.push('tank');
             const type = types[Math.floor(Math.random() * types.length)];
             this.enemies.push(new Enemy(type, this.width, this.height, this.player.level, this.diffMode, this.difficulty));
