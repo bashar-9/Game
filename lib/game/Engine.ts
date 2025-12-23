@@ -234,8 +234,8 @@ export class Engine {
         const settings = DIFFICULTY_SETTINGS[this.diffMode];
 
         // Spawn Logic with Early Game Dampener & Late Game Ramp
-        // 0-3 mins: Ramp from 15% to 100% capacity (was 0-2 mins 25%-100%)
-        const earlyGameRamp = Math.min(1.0, 0.15 + (this.gameTime / 180) * 0.85);
+        // 0-3 mins: Ramp from 40% to 100% capacity (was 0-3 mins 15%-100%)
+        const earlyGameRamp = Math.min(1.0, 0.40 + (this.gameTime / 180) * 0.60);
 
         // Late Game: Uncapped density scaling for massive hordes
         const densityCap = Math.max(1, this.difficulty);
