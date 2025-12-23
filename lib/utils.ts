@@ -12,7 +12,12 @@ export function formatTime(t: number): string {
 }
 
 export function showDamage(x: number, y: number, amount: number, isCrit: boolean = false) {
-    if (Math.random() > 0.4 && !isCrit) return; // Always show crits
+    // Optimization: Drastically reduce non-crit text
+    // Only show 10% of normal hits, or if there are too many (50+), stop showing non-crits entirely
+    if (!isCrit) {
+        if (Math.random() > 0.1) return;
+        if (document.getElementsByClassName('damage-popup').length > 50) return;
+    }
     const el = document.createElement('div');
     el.className = 'damage-popup';
     el.style.left = x + 'px';
