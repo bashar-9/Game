@@ -12,6 +12,8 @@ import { soundManager } from './SoundManager';
 export class Engine {
     ctx: CanvasRenderingContext2D;
     canvas: HTMLCanvasElement;
+    width: number = 0;
+    height: number = 0;
 
     player: Player;
     enemies: Enemy[] = [];
@@ -42,17 +44,10 @@ export class Engine {
         this.ctx = canvas.getContext('2d')!;
         this.diffMode = diffMode;
 
-        // Init Starfield
-        for (let i = 0; i < 150; i++) {
-            this.stars.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                size: Math.random() * 2,
-                alpha: Math.random() * 0.8 + 0.2
-            });
-        }
+        // Initialize size logic
+        this.resize();
 
-        this.player = new Player(canvas.width, canvas.height, diffMode, {
+        this.player = new Player(this.width, this.height, diffMode, {
             onUpdateStats: (hp, maxHp, xp, xpToNext, level, damage) => {
                 const store = useGameStore.getState();
                 store.setHp(hp, maxHp);
@@ -183,13 +178,32 @@ export class Engine {
     }
 
     resize() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
+        // Handle High DPI
+        const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+
+        this.canvas.width = this.width * dpr;
+        this.canvas.height = this.height * dpr;
+
+        // Scale context to ensure all drawing operations use logical coordinates
+        this.ctx.scale(dpr, dpr);
+
         if (this.player) {
-            this.player.x = Math.min(this.canvas.width, Math.max(0, this.player.x));
-            this.player.y = Math.min(this.canvas.height, Math.max(0, this.player.y));
+            this.player.x = Math.min(this.width, Math.max(0, this.player.x));
+            this.player.y = Math.min(this.height, Math.max(0, this.player.y));
         }
-        // Resize stars? Or let them be
+
+        // Re-init stars to cover new area properly
+        this.stars = [];
+        for (let i = 0; i < 150; i++) {
+            this.stars.push({
+                x: Math.random() * this.width,
+                y: Math.random() * this.height,
+                size: Math.random() * 2,
+                alpha: Math.random() * 0.8 + 0.2
+            });
+        }
     }
 
     startLoop() {
@@ -231,10 +245,10 @@ export class Engine {
             if (this.gameTime > 30) types.push('swarm');
             if (this.gameTime > 120) types.push('tank');
             const type = types[Math.floor(Math.random() * types.length)];
-            this.enemies.push(new Enemy(type, this.canvas.width, this.canvas.height, this.player.level, this.diffMode, this.difficulty));
+            this.enemies.push(new Enemy(type, this.width, this.height, this.player.level, this.diffMode, this.difficulty));
         }
 
-        this.player.update(this.keys, this.joystick, this.enemies, this.bullets, this.frames, this.canvas.width, this.canvas.height);
+        this.player.update(this.keys, this.joystick, this.enemies, this.bullets, this.frames, this.width, this.height);
 
         for (let i = this.enemies.length - 1; i >= 0; i--) {
             const e = this.enemies[i];
@@ -270,7 +284,7 @@ export class Engine {
         for (let i = this.bullets.length - 1; i >= 0; i--) {
             const b = this.bullets[i];
             b.update(this.enemies, this.particles);
-            if (b.life <= 0 || b.x < 0 || b.x > this.canvas.width || b.y < 0 || b.y > this.canvas.height) {
+            if (b.life <= 0 || b.x < 0 || b.x > this.width || b.y < 0 || b.y > this.height) {
                 this.bullets.splice(i, 1);
             }
         }
@@ -291,7 +305,7 @@ export class Engine {
     draw() {
         // Deep Space Background
         this.ctx.fillStyle = '#050510';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillRect(0, 0, this.width, this.height);
 
         // Stars
         this.ctx.fillStyle = '#ffffff';
@@ -309,11 +323,11 @@ export class Engine {
         // Optional: Pulse grid
         // const offset = (this.frames % gridSize); 
         // For now static is fine, maybe slow scroll later if camera moved
-        for (let x = 0; x < this.canvas.width; x += gridSize) {
-            this.ctx.beginPath(); this.ctx.moveTo(x, 0); this.ctx.lineTo(x, this.canvas.height); this.ctx.stroke();
+        for (let x = 0; x < this.width; x += gridSize) {
+            this.ctx.beginPath(); this.ctx.moveTo(x, 0); this.ctx.lineTo(x, this.height); this.ctx.stroke();
         }
-        for (let y = 0; y < this.canvas.height; y += gridSize) {
-            this.ctx.beginPath(); this.ctx.moveTo(0, y); this.ctx.lineTo(this.canvas.width, y); this.ctx.stroke();
+        for (let y = 0; y < this.height; y += gridSize) {
+            this.ctx.beginPath(); this.ctx.moveTo(0, y); this.ctx.lineTo(this.width, y); this.ctx.stroke();
         }
 
         this.pickups.forEach(p => p.draw(this.ctx));
