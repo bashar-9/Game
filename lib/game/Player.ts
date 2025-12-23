@@ -38,12 +38,14 @@ export class Player {
     critMultiplier: number;
 
     modifiers: { damage: number; attackSpeed: number };
+    invincibilityTimer: number;
     callbacks: PlayerCallbacks;
 
     constructor(canvasWidth: number, canvasHeight: number, diffMode: 'easy' | 'normal' | 'hard', callbacks: PlayerCallbacks) {
         this.x = canvasWidth / 2;
         this.y = canvasHeight / 2;
         this.callbacks = callbacks;
+        this.invincibilityTimer = 0;
         this.modifiers = { damage: 0, attackSpeed: 0 };
 
         const stats = BASE_STATS.player;
@@ -141,6 +143,8 @@ export class Player {
 
         // Repulsion Field
         if (this.repulsionLevel > 0) this.applyRepulsionField(enemies, frameCount);
+
+        if (this.invincibilityTimer > 0) this.invincibilityTimer--;
     }
 
     applyRepulsionField(enemies: Enemy[], frameCount: number) {
@@ -196,7 +200,8 @@ export class Player {
         const angle = Math.atan2(target.y - this.y, target.x - this.x);
 
         // Spread logic: Max 180 degrees (PI) total spread
-        const defaultSpread = 0.2;
+        // Spread logic: Max 180 degrees (PI) total spread
+        const defaultSpread = 0.1; // Reduced from 0.2 (~11 deg) to 0.1 (~6 deg) for better focus
         const totalSpread = Math.min((this.projectileCount - 1) * defaultSpread, Math.PI);
         const spreadIter = this.projectileCount > 1 ? totalSpread / (this.projectileCount - 1) : 0;
 
@@ -224,7 +229,10 @@ export class Player {
 
 
     takeDamage(amount: number) {
+        if (this.invincibilityTimer > 0) return;
+
         this.hp -= amount;
+        this.invincibilityTimer = 30; // 0.5s Immunity
         soundManager.play('damage', 0.3);
         this.callbacks.onCreateParticles(this.x, this.y, 5, CONFIG.COLORS.danger);
         this.syncStats();
@@ -257,9 +265,16 @@ export class Player {
         ctx.shadowBlur = 15;
         ctx.shadowColor = this.color;
         ctx.fillStyle = this.color;
+
+        // Flash if invincible
+        if (this.invincibilityTimer > 0 && Math.floor(frameCount / 4) % 2 === 0) {
+            ctx.globalAlpha = 0.5;
+        }
+
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fill();
+        ctx.globalAlpha = 1.0;
 
         ctx.fillStyle = '#fff';
         ctx.beginPath();

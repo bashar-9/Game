@@ -31,7 +31,7 @@ export const BASE_STATS = {
         baseSpeed: 4,
         baseHp: 300,
         xpToNext: 50,
-        attackSpeed: 25,
+        attackSpeed: 21,
         damage: 25,
         projectileCount: 1,
         pierce: 1,
@@ -60,7 +60,7 @@ export const BASE_STATS = {
             radius: 24,
             radiusMobile: 16,
             speed: 0.85,
-            hpBase: 60,
+            hpBase: 40,
             xpValue: 15,
             damageBase: 25,
             mass: 4.0
@@ -104,10 +104,11 @@ export const UPGRADES_LIST: Upgrade[] = [
         isMaxed: (p: IPlayer) => p.projectileCount >= 17
     },
     {
-        id: 'haste', count: 0, name: 'Hyper-Loader', desc: 'Increases weapon firing rate.', stat: '+25% Attack Speed', icon: '⚡',
-        apply: (p: IPlayer) => { p.modifiers.attackSpeed += 0.25; (p as any).recalculateStats(); },
-        evoName: 'Minigun Mech', evoDesc: 'EVOLUTION: Massive Attack Speed boost.', evoApply: (p: IPlayer) => { p.modifiers.attackSpeed += 0.6; (p as any).recalculateStats(); },
-        getCurrentStat: (c) => `+${c * 25}% Atk Spd`
+        id: 'haste', count: 0, name: 'Hyper-Loader', desc: 'Increases weapon firing rate.', stat: '+20% Attack Speed', icon: '⚡',
+        apply: (p: IPlayer) => { p.modifiers.attackSpeed += 0.20; (p as any).recalculateStats(); },
+        evoName: 'Minigun Mech', evoDesc: 'EVOLUTION: Massive Attack Speed boost.', evoApply: (p: IPlayer) => { p.modifiers.attackSpeed += 0.4; (p as any).recalculateStats(); },
+        getCurrentStat: (c) => `+${Math.round(c * 20)}% Atk Spd`,
+        isMaxed: (p: IPlayer) => p.attackSpeed <= 4
     },
     {
         id: 'damage', count: 0, name: 'Plasma Core', desc: 'Increases raw damage output.', stat: '+20% Damage', icon: '💥',
@@ -140,10 +141,10 @@ export const UPGRADES_LIST: Upgrade[] = [
         getCurrentStat: (c) => `+${c * 3} HP / Sec`
     },
     {
-        id: 'size', count: 0, name: 'High Caliber', desc: 'Projectiles become larger.', stat: '+50% Bullet Size', icon: '🌑',
-        apply: (p: IPlayer) => p.bulletSize *= 1.5,
-        evoName: 'Graviton Rounds', evoDesc: 'EVOLUTION: +100% Bullet Size.', evoApply: (p: IPlayer) => p.bulletSize *= 2.0,
-        getCurrentStat: (c) => `+${Math.round((Math.pow(1.5, c) - 1) * 100)}% Size`
+        id: 'size', count: 0, name: 'High Caliber', desc: 'Projectiles become larger.', stat: '+2 Bullet Size', icon: '🌑',
+        apply: (p: IPlayer) => p.bulletSize += 2,
+        evoName: 'Graviton Rounds', evoDesc: 'EVOLUTION: +2 Bullet Size.', evoApply: (p: IPlayer) => p.bulletSize += 2,
+        getCurrentStat: (c) => `+${c * 2} Size`
     },
     {
         id: 'repulsion', count: 0, name: 'Repulsion Field', desc: 'Lvl 1-4: Area. Lvl 5+: Force & Burn.', stat: '+Upgrade', icon: '⭕',

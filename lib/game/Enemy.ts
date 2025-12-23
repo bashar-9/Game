@@ -52,7 +52,7 @@ export class Enemy {
         this.speed = baseSpeed + (type === 'swarm' || type === 'basic' ? Math.random() * (type === 'swarm' ? 1.0 : 0.5) : 0);
 
         // New Scaling: Milder (Additive per level) rather than Multiplicative
-        const diffScale = 1 + (diffLevel * 0.45); // Diff 10 = 5.5x (was 4.5x)
+        const diffScale = 1 + (diffLevel * 0.60); // Diff 10 = 7.0x (was 5.5x)
         this.hp = stats.hpBase * diffScale * settings.hpMult * levelMult;
         this.xpValue = Math.floor(stats.xpValue * (1 + (diffLevel * 0.15)));
         this.damage = stats.damageBase * settings.dmgMult * (1 + (diffLevel * 0.15));
