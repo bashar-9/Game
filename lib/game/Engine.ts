@@ -279,6 +279,20 @@ export class Engine {
 
                 const currentKills = useGameStore.getState().killCount + 1;
                 useGameStore.getState().setKillCount(currentKills);
+                useGameStore.getState().addRerollPoints(1);
+
+                // POWERUP DROP LOGIC
+                // Formula: BaseRate * (DecayFactor / (DecayFactor + Kills))
+                // Rate = 0.5% * (500 / (500 + Kills))
+                const baseRate = 0.005;
+                const decayFactor = 500;
+                const dropRate = baseRate * (decayFactor / (decayFactor + currentKills));
+
+                if (Math.random() < dropRate) {
+                    const powerupTypes: ('double_stats' | 'invulnerability' | 'magnet')[] = ['double_stats', 'invulnerability', 'magnet'];
+                    const pType = powerupTypes[Math.floor(Math.random() * powerupTypes.length)];
+                    this.pickups.push(new Pickup(e.x, e.y, 0, 1, 'powerup', pType));
+                }
             }
         }
 

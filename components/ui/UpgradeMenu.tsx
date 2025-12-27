@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { UPGRADES_LIST, Upgrade } from '@/lib/config';
 
 import { IPlayer } from '@/lib/game/types';
+import { useGameStore } from '@/store/useGameStore';
 
 interface UpgradeMenuProps {
     onSelect: (id: string) => void;
@@ -11,9 +12,16 @@ interface UpgradeMenuProps {
 }
 
 export default function UpgradeMenu({ onSelect, player }: UpgradeMenuProps) {
-    const [options] = useState<Upgrade[]>(() => {
-        // Filter out maxed upgrades
+    const rerolls = useGameStore(s => s.rerolls);
+    const rerollPoints = useGameStore(s => s.rerollPoints);
+    const paidRerollCount = useGameStore(s => s.paidRerollCount);
+    const useReroll = useGameStore(s => s.useReroll);
+
+    const generateOptions = (excludeIds: string[] = []) => {
+        // Filter out maxed upgrades AND excluded upgrades
         const available = UPGRADES_LIST.filter(u => {
+            if (excludeIds.includes(u.id)) return false;
+
             if (u.isMaxed && player) {
                 return !u.isMaxed(player);
             }
@@ -22,7 +30,20 @@ export default function UpgradeMenu({ onSelect, player }: UpgradeMenuProps) {
 
         const shuffled = [...available].sort(() => 0.5 - Math.random());
         return shuffled.slice(0, 3);
-    });
+    };
+
+    const [options, setOptions] = useState<Upgrade[]>(() => generateOptions([]));
+
+    const handleReroll = () => {
+        if (useReroll()) {
+            const currentIds = options.map(o => o.id);
+            setOptions(generateOptions(currentIds));
+        }
+    };
+
+    // Calculate next cost
+    const currentCost = 75 * (paidRerollCount + 1);
+    const canAfford = rerolls > 0 || rerollPoints >= currentCost;
 
     // Helper to determine if the NEXT level is an evolution
     const isEvoReady = (u: Upgrade) => {
@@ -39,6 +60,11 @@ export default function UpgradeMenu({ onSelect, player }: UpgradeMenuProps) {
                     <h2 className="text-2xl md:text-5xl font-black text-white text-center tracking-tighter drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">
                         SYSTEM UPGRADE
                     </h2>
+                    <div className="flex justify-center items-center gap-4 mt-2">
+                        <div className="text-white/70 text-sm font-mono bg-white/5 px-3 py-1 rounded-full border border-white/10">
+                            POINTS: <span className="text-[#ffee00] font-bold">{rerollPoints}</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="overflow-y-auto min-h-0 flex-1 custom-scrollbar">
@@ -125,6 +151,34 @@ export default function UpgradeMenu({ onSelect, player }: UpgradeMenuProps) {
                                 </div>
                             );
                         })}
+                        {/* REROLL SECTION */}
+                        <div className="shrink-0 pt-4 flex justify-center border-t border-white/10 mt-4">
+                            <button
+                                onClick={handleReroll}
+                                disabled={!canAfford}
+                                className={`
+                            group flex flex-col items-center justify-center gap-1
+                            px-8 py-3 rounded-full border-2 transition-all duration-300
+                            ${canAfford
+                                        ? 'bg-white/10 border-white/20 hover:bg-white/20 hover:border-[#ffee00] hover:scale-105 cursor-pointer'
+                                        : 'bg-black/40 border-white/5 opacity-50 cursor-not-allowed'
+                                    }
+                        `}
+                            >
+                                <span className="text-lg font-black uppercase tracking-widest text-white group-hover:text-[#ffee00]">
+                                    REROLL SYSTEM
+                                </span>
+                                <div className="text-xs font-mono flex items-center gap-2">
+                                    {rerolls > 0 ? (
+                                        <span className="text-[#00ffcc]">FREE REROLLS: {rerolls}</span>
+                                    ) : (
+                                        <span className={rerollPoints >= currentCost ? 'text-[#ffee00]' : 'text-red-500'}>
+                                            COST: {currentCost} PTS
+                                        </span>
+                                    )}
+                                </div>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

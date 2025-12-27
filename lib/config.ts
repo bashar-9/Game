@@ -18,6 +18,12 @@ export const CONFIG = {
     IS_MOBILE: false, // Will be set on mount
 };
 
+export const POWERUP_DURATIONS = {
+    double_stats: 600, // 10 seconds
+    invulnerability: 600, // 10 seconds
+    magnet: 300 // 5 seconds
+};
+
 export const DIFFICULTY_SETTINGS = {
     easy: { hpMult: 0.7, dmgMult: 0.5, spawnMult: 0.8, playerHpBonus: 100 },
     normal: { hpMult: 1.0, dmgMult: 1.0, spawnMult: 1.0, playerHpBonus: 0 },
@@ -98,49 +104,49 @@ export interface Upgrade {
 
 export const UPGRADES_LIST: Upgrade[] = [
     {
-        id: 'multishot', count: 0, name: 'Split-Fire Mod', desc: 'Adds an additional projectile.', stat: '+1 Projectile', icon: '⫚', maxLevel: 5,
+        id: 'multishot', count: 0, name: 'Split-Fire Mod', desc: 'Adds an additional projectile.', stat: '+1 Projectile', icon: '⫚', maxLevel: 15,
         apply: (p: IPlayer) => p.projectileCount++,
         evoName: 'Bullet Storm', evoDesc: 'EVOLUTION: +2 Projectiles instantly.', evoApply: (p: IPlayer) => p.projectileCount += 2,
         getCurrentStat: (c) => `+${c} Projectile${c > 1 ? 's' : ''}`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'multishot'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'haste', count: 0, name: 'Hyper-Loader', desc: 'Increases weapon firing rate.', stat: '+25% Attack Speed', icon: '⚡', maxLevel: 8,
+        id: 'haste', count: 0, name: 'Hyper-Loader', desc: 'Increases weapon firing rate.', stat: '+25% Attack Speed', icon: '⚡', maxLevel: 15,
         apply: (p: IPlayer) => { p.modifiers.attackSpeed += 0.25; (p as any).recalculateStats(); },
         evoName: 'Minigun Mech', evoDesc: 'EVOLUTION: Massive Attack Speed boost.', evoApply: (p: IPlayer) => { p.modifiers.attackSpeed += 0.4; (p as any).recalculateStats(); },
         getCurrentStat: (c) => `+${Math.round(c * 25)}% Atk Spd`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'haste'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'damage', count: 0, name: 'Plasma Core', desc: 'Increases raw damage output.', stat: '+25% Damage', icon: '💥', maxLevel: 10,
+        id: 'damage', count: 0, name: 'Plasma Core', desc: 'Increases raw damage output.', stat: '+25% Damage', icon: '💥', maxLevel: 15,
         apply: (p: IPlayer) => { p.modifiers.damage += 0.25; (p as any).recalculateStats(); },
         evoName: 'Fusion Reactor', evoDesc: 'EVOLUTION: +50% Bonus Damage.', evoApply: (p: IPlayer) => { p.modifiers.damage += 0.5; (p as any).recalculateStats(); },
         getCurrentStat: (c) => `+${c * 25}% Damage`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'damage'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'speed', count: 0, name: 'Ionic Thrusters', desc: 'Enhances movement speed.', stat: '+15% Move Speed', icon: '👟', maxLevel: 5,
+        id: 'speed', count: 0, name: 'Ionic Thrusters', desc: 'Enhances movement speed.', stat: '+15% Move Speed', icon: '👟', maxLevel: 10,
         apply: (p: IPlayer) => p.speed *= 1.15,
         evoName: 'Warp Drive', evoDesc: 'EVOLUTION: Massive Speed + Max HP.', evoApply: (p: IPlayer) => { p.speed *= 1.4; p.maxHp += 50; p.hp += 50; },
         getCurrentStat: (c) => `+${Math.round((Math.pow(1.15, c) - 1) * 100)}% Speed`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'speed'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'pierce', count: 0, name: 'Tungsten Rounds', desc: 'Projectiles punch through targets.', stat: '+1 Pierce', icon: '🏹', maxLevel: 5,
+        id: 'pierce', count: 0, name: 'Tungsten Rounds', desc: 'Projectiles punch through targets.', stat: '+1 Pierce', icon: '🏹', maxLevel: 8,
         apply: (p: IPlayer) => p.pierce++,
         evoName: 'Spectral Shells', evoDesc: 'EVOLUTION: +3 Pierce & Velocity.', evoApply: (p: IPlayer) => { p.pierce += 3; p.bulletSpeed += 5; },
         getCurrentStat: (c) => `+${c} Pierce`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'pierce'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'maxhp', count: 0, name: 'Titan Plating', desc: 'Reinforces hull integrity.', stat: '+100 Max HP', icon: '🛡️', maxLevel: 10,
+        id: 'maxhp', count: 0, name: 'Titan Plating', desc: 'Reinforces hull integrity.', stat: '+100 Max HP', icon: '🛡️', maxLevel: 15,
         apply: (p: IPlayer) => { p.maxHp += 100; p.hp += 100; },
         evoName: 'Behemoth Hull', evoDesc: 'EVOLUTION: +75 Max HP & 50% Heal.', evoApply: (p: IPlayer) => { p.maxHp += 75; p.hp = Math.min(p.maxHp, p.hp + (p.maxHp * 0.5)); },
         getCurrentStat: (c) => `+${c * 100} Max HP`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'maxhp'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'regen', count: 0, name: 'Nano Repair', desc: 'Activates passive regeneration.', stat: '+3 HP / Sec', icon: '💊', maxLevel: 8,
+        id: 'regen', count: 0, name: 'Nano Repair', desc: 'Activates passive regeneration.', stat: '+3 HP / Sec', icon: '💊', maxLevel: 10,
         apply: (p: IPlayer) => p.regen += 3,
         evoName: 'Living Metal', evoDesc: 'EVOLUTION: +5 Regeneration/sec.', evoApply: (p: IPlayer) => p.regen += 5,
         getCurrentStat: (c) => `+${c * 3} HP / Sec`,
@@ -154,7 +160,7 @@ export const UPGRADES_LIST: Upgrade[] = [
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'size'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'repulsion', count: 0, name: 'Repulsion Field', desc: 'Lvl 1-4: Area. Lvl 5+: Force & Burn.', stat: '+Upgrade', icon: '⭕', maxLevel: 8,
+        id: 'repulsion', count: 0, name: 'Repulsion Field', desc: 'Lvl 1-4: Area. Lvl 5+: Force & Burn.', stat: '+Upgrade', icon: '⭕', maxLevel: 10,
         apply: (p: IPlayer) => p.repulsionLevel++,
         evoName: 'Supernova', evoDesc: 'EVOLUTION: Massive Radius & Double Burn.', evoApply: (p: IPlayer) => { p.repulsionLevel += 5; },
         getCurrentStat: (c) => `Level ${c} Active`,
@@ -168,7 +174,7 @@ export const UPGRADES_LIST: Upgrade[] = [
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'critChance'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'critDamage', count: 0, name: 'Gauss Coil', desc: 'Increases critical hit damage.', stat: '+10% Crit Dmg', icon: '🔋', maxLevel: 10,
+        id: 'critDamage', count: 0, name: 'Gauss Coil', desc: 'Increases critical hit damage.', stat: '+10% Crit Dmg', icon: '🔋', maxLevel: 15,
         apply: (p: IPlayer) => p.critMultiplier += 0.10,
         evoName: 'Railgun', evoDesc: 'EVOLUTION: +10% Crit Dmg.', evoApply: (p: IPlayer) => p.critMultiplier += 0.10,
         getCurrentStat: (c) => `+${c * 10}% Crit Dmg`,

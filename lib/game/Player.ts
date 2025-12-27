@@ -1,4 +1,4 @@
-import { BASE_STATS, DIFFICULTY_SETTINGS, CONFIG } from '../config';
+import { BASE_STATS, DIFFICULTY_SETTINGS, CONFIG, POWERUP_DURATIONS } from '../config';
 import { Bullet } from './Bullet';
 import { Enemy } from './Enemy';
 import { JoystickState } from './types';
@@ -11,6 +11,8 @@ export interface PlayerCallbacks {
     onGameOver: () => void;
     onCreateParticles: (x: number, y: number, count: number, color: string) => void;
 }
+
+export type PowerupType = 'double_stats' | 'invulnerability' | 'magnet';
 
 export class Player {
     x: number;
@@ -41,6 +43,12 @@ export class Player {
     modifiers: { damage: number; attackSpeed: number };
     invincibilityTimer: number;
     callbacks: PlayerCallbacks;
+
+    powerups: Record<PowerupType, number> = {
+        'double_stats': 0,
+        'invulnerability': 0,
+        'magnet': 0
+    };
 
     rotation: number;
 
@@ -88,14 +96,24 @@ export class Player {
     }
 
     recalculateStats() {
+        // Multiplier from Powerups
+        const powerupMult = this.powerups['double_stats'] > 0 ? 2 : 1;
+
         // Damage = (Base + Level) * (1 + Modifiers)
         const baseDmg = BASE_STATS.player.damage + (this.level - 1); // +1 Base DMG per level
-        this.damage = Math.floor(baseDmg * (1 + this.modifiers.damage));
+        this.damage = Math.floor(baseDmg * (1 + this.modifiers.damage) * powerupMult);
 
         // Attack Speed (Delay) = BaseDelay / (1 + Modifiers)
         // Cap speed at 15 shots/sec (4 frames at 60fps)
         const newDelay = BASE_STATS.player.attackSpeed / (1 + this.modifiers.attackSpeed);
-        this.attackSpeed = Math.max(4, newDelay);
+        // If Double Stats, Attack Speed Delay is HALVED (Speed Doubled)
+        const finalDelay = powerupMult > 1 ? newDelay / 2 : newDelay;
+
+        this.attackSpeed = Math.max(4, finalDelay);
+
+        // Pickup Range Magnet
+        const magnetMult = this.powerups['magnet'] > 0 ? 5 : 1;
+        this.pickupRange = BASE_STATS.player.pickupRange * magnetMult;
     }
 
     // ... (Keep existing update method)
@@ -161,6 +179,19 @@ export class Player {
         if (this.repulsionLevel > 0) this.applyRepulsionField(enemies, frameCount);
 
         if (this.invincibilityTimer > 0) this.invincibilityTimer--;
+
+        // Update Powerups
+        let statsChanged = false;
+        (Object.keys(this.powerups) as PowerupType[]).forEach(key => {
+            if (this.powerups[key] > 0) {
+                this.powerups[key]--;
+                if (this.powerups[key] <= 0) {
+                    statsChanged = true;
+                    // Play sound or effect for powerup end?
+                }
+            }
+        });
+        if (statsChanged) this.recalculateStats();
     }
 
     applyRepulsionField(enemies: Enemy[], frameCount: number) {
@@ -252,13 +283,26 @@ export class Player {
 
     takeDamage(amount: number) {
         if (this.invincibilityTimer > 0) return;
+        if (this.powerups['invulnerability'] > 0) return;
 
         this.hp -= amount;
         this.invincibilityTimer = 30; // 0.5s Immunity
         soundManager.play('damage', 0.3);
         this.callbacks.onCreateParticles(this.x, this.y, 5, CONFIG.COLORS.danger);
         this.syncStats();
+        this.syncStats();
         if (this.hp <= 0) this.callbacks.onGameOver();
+    }
+
+    applyPowerup(type: PowerupType, durationFrames: number) {
+        this.powerups[type] = durationFrames;
+        this.recalculateStats();
+
+        // Helper: Restore full HP on any powerup? Or just invulnerability?
+        // User didn't ask, but Invulnerability usually implies safety.
+
+        // Visual Effect
+        this.callbacks.onCreateParticles(this.x, this.y, 20, '#ffffff');
     }
 
     syncStats() {
@@ -339,5 +383,38 @@ export class Player {
         ctx.drawImage(sprite, -Player.CACHE_HALF, -Player.CACHE_HALF);
 
         ctx.restore();
+
+        // Draw Powerup Indicators (Bars)
+        let barYOffset = 0;
+        const barWidth = 40;
+        const barHeight = 4;
+
+        (Object.keys(this.powerups) as PowerupType[]).forEach(key => {
+            const timeLeft = this.powerups[key];
+            if (timeLeft > 0) {
+                const maxTime = POWERUP_DURATIONS[key] || 1;
+                const pct = Math.max(0, timeLeft / maxTime);
+
+                const color = key === 'double_stats' ? '#ff0000' :
+                    key === 'invulnerability' ? '#ffff00' : '#0000ff';
+
+                // Bar Background
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.fillRect(this.x - barWidth / 2, this.y - this.radius - 15 - barYOffset, barWidth, barHeight);
+
+                // Bar Progress
+                ctx.fillStyle = color;
+                ctx.fillRect(this.x - barWidth / 2, this.y - this.radius - 15 - barYOffset, barWidth * pct, barHeight);
+
+                // Border
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(this.x - barWidth / 2, this.y - this.radius - 15 - barYOffset, barWidth, barHeight);
+
+                barYOffset += 6; // Stack bars upwards or downwards? 
+                // Let's stack upwards:
+                // Actually the current logic subtracts offset, so it stacks upwards (y becomes smaller)
+            }
+        });
     }
 }

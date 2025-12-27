@@ -12,6 +12,11 @@ interface GameState {
     isGameOver: boolean;
     isUpgradeMenuOpen: boolean;
 
+    // Reroll System
+    rerolls: number;
+    rerollPoints: number;
+    paidRerollCount: number; // To track scaling cost
+
     damage: number;
 
     setHp: (hp: number, maxHp: number) => void;
@@ -22,6 +27,10 @@ interface GameState {
     setGameOver: (over: boolean) => void;
     setUpgradeMenu: (open: boolean) => void;
     setDamage: (damage: number) => void;
+
+    addRerollPoints: (amount: number) => void;
+    useReroll: () => boolean; // Returns true if successful
+
     reset: () => void;
 }
 
@@ -37,6 +46,10 @@ export const useGameStore = create<GameState>((set) => ({
     isGameOver: false,
     isUpgradeMenuOpen: false,
 
+    rerolls: 3,
+    rerollPoints: 0,
+    paidRerollCount: 0,
+
     damage: 25,
 
     setHp: (hp, maxHp) => set({ hp, maxHp }),
@@ -47,8 +60,36 @@ export const useGameStore = create<GameState>((set) => ({
     setGameOver: (isGameOver) => set({ isGameOver }),
     setUpgradeMenu: (isUpgradeMenuOpen) => set({ isUpgradeMenuOpen }),
     setDamage: (damage) => set({ damage }),
+
+    addRerollPoints: (amount) => set((state) => ({ rerollPoints: state.rerollPoints + amount })),
+    useReroll: () => {
+        const state = useGameStore.getState();
+        // 1. Try free reroll
+        if (state.rerolls > 0) {
+            set({ rerolls: state.rerolls - 1 });
+            return true;
+        }
+
+        // 2. Try paid reroll
+        // Cost = Base * (Multiplier ^ PaidCount) ? Or simple linear? 
+        // User said: "first payment is x.. second one is 2x then 3x" -> Linear scaling of multiplier.
+        // Cost = 75 * (paidRerollCount + 1)
+        const cost = 75 * (state.paidRerollCount + 1);
+
+        if (state.rerollPoints >= cost) {
+            set({
+                rerollPoints: state.rerollPoints - cost,
+                paidRerollCount: state.paidRerollCount + 1
+            });
+            return true;
+        }
+
+        return false;
+    },
+
     reset: () => set({
         hp: 300, maxHp: 300, xp: 0, xpToNext: 20, level: 1, damage: 25,
-        killCount: 0, time: 0, isPaused: false, isGameOver: false, isUpgradeMenuOpen: false
+        killCount: 0, time: 0, isPaused: false, isGameOver: false, isUpgradeMenuOpen: false,
+        rerolls: 3, rerollPoints: 0, paidRerollCount: 0
     })
 }));
