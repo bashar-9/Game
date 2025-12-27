@@ -105,17 +105,17 @@ export const UPGRADES_LIST: Upgrade[] = [
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'multishot'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'haste', count: 0, name: 'Hyper-Loader', desc: 'Increases weapon firing rate.', stat: '+20% Attack Speed', icon: '⚡', maxLevel: 8,
-        apply: (p: IPlayer) => { p.modifiers.attackSpeed += 0.20; (p as any).recalculateStats(); },
+        id: 'haste', count: 0, name: 'Hyper-Loader', desc: 'Increases weapon firing rate.', stat: '+25% Attack Speed', icon: '⚡', maxLevel: 8,
+        apply: (p: IPlayer) => { p.modifiers.attackSpeed += 0.25; (p as any).recalculateStats(); },
         evoName: 'Minigun Mech', evoDesc: 'EVOLUTION: Massive Attack Speed boost.', evoApply: (p: IPlayer) => { p.modifiers.attackSpeed += 0.4; (p as any).recalculateStats(); },
-        getCurrentStat: (c) => `+${Math.round(c * 20)}% Atk Spd`,
+        getCurrentStat: (c) => `+${Math.round(c * 25)}% Atk Spd`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'haste'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'damage', count: 0, name: 'Plasma Core', desc: 'Increases raw damage output.', stat: '+20% Damage', icon: '💥', maxLevel: 10,
-        apply: (p: IPlayer) => { p.modifiers.damage += 0.2; (p as any).recalculateStats(); },
+        id: 'damage', count: 0, name: 'Plasma Core', desc: 'Increases raw damage output.', stat: '+25% Damage', icon: '💥', maxLevel: 10,
+        apply: (p: IPlayer) => { p.modifiers.damage += 0.25; (p as any).recalculateStats(); },
         evoName: 'Fusion Reactor', evoDesc: 'EVOLUTION: +50% Bonus Damage.', evoApply: (p: IPlayer) => { p.modifiers.damage += 0.5; (p as any).recalculateStats(); },
-        getCurrentStat: (c) => `+${c * 20}% Damage`,
+        getCurrentStat: (c) => `+${c * 25}% Damage`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'damage'); return u ? u.count >= u.maxLevel : false; }
     },
     {
@@ -133,10 +133,10 @@ export const UPGRADES_LIST: Upgrade[] = [
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'pierce'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'maxhp', count: 0, name: 'Titan Plating', desc: 'Reinforces hull integrity.', stat: '+50 Max HP', icon: '🛡️', maxLevel: 10,
-        apply: (p: IPlayer) => { p.maxHp += 50; p.hp += 50; },
+        id: 'maxhp', count: 0, name: 'Titan Plating', desc: 'Reinforces hull integrity.', stat: '+100 Max HP', icon: '🛡️', maxLevel: 10,
+        apply: (p: IPlayer) => { p.maxHp += 100; p.hp += 100; },
         evoName: 'Behemoth Hull', evoDesc: 'EVOLUTION: +75 Max HP & 50% Heal.', evoApply: (p: IPlayer) => { p.maxHp += 75; p.hp = Math.min(p.maxHp, p.hp + (p.maxHp * 0.5)); },
-        getCurrentStat: (c) => `+${c * 50} Max HP`,
+        getCurrentStat: (c) => `+${c * 100} Max HP`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'maxhp'); return u ? u.count >= u.maxLevel : false; }
     },
     {
@@ -168,10 +168,10 @@ export const UPGRADES_LIST: Upgrade[] = [
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'critChance'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'critDamage', count: 0, name: 'Gauss Coil', desc: 'Increases critical hit damage.', stat: '+5% Crit Dmg', icon: '🔋', maxLevel: 10,
-        apply: (p: IPlayer) => p.critMultiplier += 0.05,
+        id: 'critDamage', count: 0, name: 'Gauss Coil', desc: 'Increases critical hit damage.', stat: '+10% Crit Dmg', icon: '🔋', maxLevel: 10,
+        apply: (p: IPlayer) => p.critMultiplier += 0.10,
         evoName: 'Railgun', evoDesc: 'EVOLUTION: +10% Crit Dmg.', evoApply: (p: IPlayer) => p.critMultiplier += 0.10,
-        getCurrentStat: (c) => `+${c * 5}% Crit Dmg`,
+        getCurrentStat: (c) => `+${c * 10}% Crit Dmg`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'critDamage'); return u ? u.count >= u.maxLevel : false; }
     }
 ];
