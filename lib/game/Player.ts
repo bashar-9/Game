@@ -171,7 +171,6 @@ export class Player {
         const range = baseRange + radiusGrowth;
 
         const forceBase = stats.repulsionForce;
-        const extraLevels = Math.max(0, this.repulsionLevel - 4);
 
         for (const e of enemies) {
             const dx = e.x - this.x;
@@ -189,7 +188,8 @@ export class Player {
                 e.pushY += ny * effectiveForce;
 
                 if (frameCount % 15 === 0) {
-                    const burnDmg = Math.max(2, (this.damage * 0.25) + (extraLevels * 5));
+                    // New Formula: 30% Base + 5% per level
+                    const burnDmg = Math.max(1, Math.floor(this.damage * (0.30 + (this.repulsionLevel * 0.05))));
                     e.takeHit(burnDmg);
                     if (Math.random() > 0.7) {
                         this.callbacks.onCreateParticles(e.x, e.y, 1, '#ff5500');
