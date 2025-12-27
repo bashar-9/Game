@@ -1,4 +1,4 @@
-export type SoundName = 'shoot' | 'explosion' | 'collect' | 'damage' | 'game_over' | 'background';
+export type SoundName = 'shoot' | 'explosion' | 'collect' | 'damage' | 'game_over' | 'background' | 'powerup';
 
 class SoundManager {
     private context: AudioContext | null = null;
@@ -11,6 +11,7 @@ class SoundManager {
         shoot: '/sounds/shoot.ogg',
         explosion: '/sounds/explosion.ogg',
         collect: '/sounds/collect.ogg',
+        powerup: '/sounds/collect.ogg', // Reuse collect sound for now
         damage: '/sounds/damage.ogg',
         game_over: '/sounds/game_over.ogg',
         background: '/sounds/background.ogg',
