@@ -215,16 +215,24 @@ export class Player {
     shoot(target: Enemy, bullets: Bullet[]) {
         const angle = Math.atan2(target.y - this.y, target.x - this.x);
 
-        // Spread logic: Max 180 degrees (PI) total spread
-        // Spread logic: Max 180 degrees (PI) total spread
-        const defaultSpread = 0.1; // Reduced from 0.2 (~11 deg) to 0.1 (~6 deg) for better focus
-        const totalSpread = Math.min((this.projectileCount - 1) * defaultSpread, Math.PI);
-        const spreadIter = this.projectileCount > 1 ? totalSpread / (this.projectileCount - 1) : 0;
+        // Center-Anchored Spread Logic (Option 2)
+        // 1st bullet: Center (0)
+        // 2nd bullet: +Spread
+        // 3rd bullet: -Spread
+        // 4th bullet: +2*Spread ...
 
-        const startAngle = angle - totalSpread / 2;
+        const spreadStep = 0.15; // ~8.5 degrees spacing
 
         for (let i = 0; i < this.projectileCount; i++) {
-            const currentAngle = startAngle + i * spreadIter;
+            let offsetMultiplier = 0;
+            if (i > 0) {
+                // i=1 -> 1, i=2 -> -1, i=3 -> 2, i=4 -> -2
+                offsetMultiplier = Math.ceil(i / 2);
+                if (i % 2 === 0) offsetMultiplier *= -1;
+            }
+
+            const currentAngle = angle + (offsetMultiplier * spreadStep);
+
             const vx = Math.cos(currentAngle) * this.bulletSpeed;
             const vy = Math.sin(currentAngle) * this.bulletSpeed;
 
