@@ -19,9 +19,9 @@ export const CONFIG = {
 };
 
 export const POWERUP_DURATIONS = {
-    double_stats: 600, // 10 seconds
-    invulnerability: 600, // 10 seconds
-    magnet: 300 // 5 seconds
+    double_stats: 720, // 12 seconds
+    invulnerability: 900, // 15 seconds
+    magnet: 900 // 15 seconds
 };
 
 export const DIFFICULTY_SETTINGS = {
@@ -113,7 +113,7 @@ export const UPGRADES_LIST: Upgrade[] = [
     {
         id: 'haste', count: 0, name: 'Hyper-Loader', desc: 'Increases weapon firing rate.', stat: '+25% Attack Speed', icon: '⚡', maxLevel: 15,
         apply: (p: IPlayer) => { p.modifiers.attackSpeed += 0.25; (p as any).recalculateStats(); },
-        evoName: 'Minigun Mech', evoDesc: 'EVOLUTION: Massive Attack Speed boost.', evoApply: (p: IPlayer) => { p.modifiers.attackSpeed += 0.4; (p as any).recalculateStats(); },
+        evoName: 'Minigun Mech', evoDesc: 'EVOLUTION: Massive Attack Speed boost.', evoApply: (p: IPlayer) => { p.modifiers.attackSpeed += 0.6; (p as any).recalculateStats(); },
         getCurrentStat: (c) => `+${Math.round(c * 25)}% Atk Spd`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'haste'); return u ? u.count >= u.maxLevel : false; }
     },
@@ -160,24 +160,23 @@ export const UPGRADES_LIST: Upgrade[] = [
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'size'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'repulsion', count: 0, name: 'Repulsion Field', desc: 'Lvl 1-4: Area. Lvl 5+: Force & Burn.', stat: '+Upgrade', icon: '⭕', maxLevel: 10,
+        id: 'repulsion', count: 0, name: 'Repulsion Field', desc: 'Increases Area and Force & Burn.', stat: '+Upgrade', icon: '⭕', maxLevel: 10,
         apply: (p: IPlayer) => p.repulsionLevel++,
         evoName: 'Supernova', evoDesc: 'EVOLUTION: Massive Radius & Double Burn.', evoApply: (p: IPlayer) => { p.repulsionLevel += 5; },
         getCurrentStat: (c) => `Level ${c} Active`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'repulsion'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'critChance', count: 0, name: 'Targeting CPU', desc: 'Increases critical hit frequency.', stat: '+5% Crit Chance', icon: '🎯', maxLevel: 10,
-        apply: (p: IPlayer) => p.critChance = Math.min(1.0, p.critChance + 0.05),
-        evoName: 'Eagle Eye', evoDesc: 'EVOLUTION: +10% Crit Chance.', evoApply: (p: IPlayer) => p.critChance = Math.min(1.0, p.critChance + 0.10),
-        getCurrentStat: (c) => `+${Math.round(c * 5)}% Crit Chance`,
+        id: 'critChance', count: 0, name: 'Targeting CPU', desc: 'Increases critical hit frequency.', stat: '+25% Crit Chance', icon: '🎯', maxLevel: 4,
+        apply: (p: IPlayer) => p.critChance = Math.min(1.0, p.critChance + 0.25),
+        getCurrentStat: (c) => `+${Math.round(c * 25)}% Crit Chance`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'critChance'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'critDamage', count: 0, name: 'Gauss Coil', desc: 'Increases critical hit damage.', stat: '+10% Crit Dmg', icon: '🔋', maxLevel: 15,
-        apply: (p: IPlayer) => p.critMultiplier += 0.10,
+        id: 'critDamage', count: 0, name: 'Gauss Coil', desc: 'Increases critical hit damage.', stat: '+15% Crit Dmg', icon: '🔋', maxLevel: 10,
+        apply: (p: IPlayer) => p.critMultiplier += 0.15,
         evoName: 'Railgun', evoDesc: 'EVOLUTION: +10% Crit Dmg.', evoApply: (p: IPlayer) => p.critMultiplier += 0.10,
-        getCurrentStat: (c) => `+${c * 10}% Crit Dmg`,
+        getCurrentStat: (c) => `+${c * 15}% Crit Dmg`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'critDamage'); return u ? u.count >= u.maxLevel : false; }
     }
 ];

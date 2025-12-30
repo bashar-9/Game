@@ -97,7 +97,7 @@ export class Player {
 
     recalculateStats() {
         // Multiplier from Powerups
-        const powerupMult = this.powerups['double_stats'] > 0 ? 2 : 1;
+        const powerupMult = this.powerups['double_stats'] > 0 ? 3 : 1;
 
         // Damage = (Base + Level) * (1 + Modifiers)
         const baseDmg = BASE_STATS.player.damage + (this.level - 1); // +1 Base DMG per level
