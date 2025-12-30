@@ -53,6 +53,10 @@ export class Engine {
                 store.setHp(hp, maxHp);
                 store.setXp(xp, xpToNext, level);
                 store.setDamage(damage);
+                store.setDamage(damage);
+            },
+            onUpdateActivePowerups: (active) => {
+                useGameStore.getState().setActivePowerups(active);
             },
             onLevelUp: () => {
                 this.pauseGame();

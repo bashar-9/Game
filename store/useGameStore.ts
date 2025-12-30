@@ -28,6 +28,9 @@ interface GameState {
     setUpgradeMenu: (open: boolean) => void;
     setDamage: (damage: number) => void;
 
+    activePowerups: Record<string, number>;
+    setActivePowerups: (active: Record<string, number>) => void;
+
     addRerollPoints: (amount: number) => void;
     useReroll: () => boolean; // Returns true if successful
 
@@ -87,9 +90,13 @@ export const useGameStore = create<GameState>((set) => ({
         return false;
     },
 
+    activePowerups: {},
+    setActivePowerups: (active) => set({ activePowerups: active }),
+
     reset: () => set({
         hp: 300, maxHp: 300, xp: 0, xpToNext: 20, level: 1, damage: 25,
         killCount: 0, time: 0, isPaused: false, isGameOver: false, isUpgradeMenuOpen: false,
-        rerolls: 3, rerollPoints: 0, paidRerollCount: 0
+        rerolls: 3, rerollPoints: 0, paidRerollCount: 0,
+        activePowerups: {}
     })
 }));

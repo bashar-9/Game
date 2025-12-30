@@ -103,6 +103,52 @@ export default function HUD() {
                 </div>
             </div>
 
+            {/* Active Powerups Display */}
+            <div className="absolute top-20 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none">
+                {Object.entries(useGameStore(state => state.activePowerups || {})).map(([type, duration]) => {
+                    if (duration <= 0) return null;
+
+                    let label = "";
+                    let sub = "";
+                    let color = "";
+
+                    switch (type) {
+                        case 'double_stats':
+                            label = "DOUBLE STATS";
+                            sub = "3x Damage & Speed";
+                            color = "text-red-500";
+                            break;
+                        case 'invulnerability':
+                            label = "INVULNERABLE";
+                            sub = "Damage Immune";
+                            color = "text-yellow-400";
+                            break;
+                        case 'magnet':
+                            label = "MAGNET";
+                            sub = "Max Range";
+                            color = "text-blue-400";
+                            break;
+                    }
+
+                    if (!label) return null;
+
+                    // Blink when low duration (< 2 seconds = 120 frames)
+                    const isLow = duration < 120;
+                    const opacity = isLow && Math.floor(Date.now() / 100) % 2 === 0 ? "opacity-30" : "opacity-100";
+
+                    return (
+                        <div key={type} className={`flex flex-col items-center ${opacity} transition-opacity`}>
+                            <div className={`text-xl md:text-2xl font-black ${color} tracking-widest drop-shadow-[0_0_10px_rgba(0,0,0,0.8)] stroke-black`}>
+                                {label}
+                            </div>
+                            <div className="text-xs md:text-sm font-bold text-white/90 drop-shadow-md">
+                                {sub}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+
             {/* Bottom Bar (XP) */}
             <div className="absolute bottom-0 left-0 w-full p-0">
                 <div className="w-full h-2 bg-gray-900 border-t border-gray-700">
