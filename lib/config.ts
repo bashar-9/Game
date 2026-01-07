@@ -160,10 +160,10 @@ export const UPGRADES_LIST: Upgrade[] = [
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'size'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'repulsion', count: 0, name: 'Repulsion Field', desc: 'Increases Area and Force & Burn.', stat: '+Upgrade', icon: '⭕', maxLevel: 10,
+        id: 'repulsion', count: 0, name: 'Repulsion Field', desc: 'Increases Radius, Push Force & Burn Damage.', stat: '+Range/Force/Dmg', icon: '⭕', maxLevel: 10,
         apply: (p: IPlayer) => p.repulsionLevel++,
         evoName: 'Supernova', evoDesc: 'EVOLUTION: Massive Radius & Double Burn.', evoApply: (p: IPlayer) => { p.repulsionLevel += 5; },
-        getCurrentStat: (c) => `Level ${c} Active`,
+        getCurrentStat: (c) => `Level ${c}`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'repulsion'); return u ? u.count >= u.maxLevel : false; }
     },
     {
