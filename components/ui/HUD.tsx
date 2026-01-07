@@ -18,7 +18,7 @@ export default function HUD() {
     }, []);
 
     const toggleMute = () => {
-        const isMuted = soundManager.toggleMute();
+        const isMuted = soundManager.toggleMute('master');
         setMuted(isMuted);
     };
 

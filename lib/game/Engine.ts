@@ -61,6 +61,7 @@ export class Engine {
             onLevelUp: () => {
                 this.pauseGame();
                 useGameStore.getState().setUpgradeMenu(true);
+                soundManager.play('level_up', 'sfx', 0.7);
             },
             onGameOver: () => {
                 this.endGame();
@@ -127,7 +128,9 @@ export class Engine {
         this.resize();
 
         // Audio Init
-        soundManager.preload();
+        soundManager.preload().then(() => {
+            soundManager.playBGM(0.5);
+        });
 
         this.startLoop();
     }
@@ -286,7 +289,8 @@ export class Engine {
                 this.pickups.push(new Pickup(e.x, e.y, e.xpValue * multiplier, multiplier));
 
                 this.enemies.splice(i, 1);
-                soundManager.play('explosion', 0.2);
+                // Explosion with variance
+                soundManager.play('explosion', 'sfx', 0.25, false, 0.2);
 
                 const currentKills = useGameStore.getState().killCount + 1;
                 useGameStore.getState().setKillCount(currentKills);
@@ -376,7 +380,8 @@ export class Engine {
 
     endGame() {
         useGameStore.getState().setGameOver(true);
-        soundManager.play('game_over', 0.3);
+        useGameStore.getState().setGameOver(true);
+        soundManager.play('game_over', 'sfx', 1.0);
         soundManager.stopBGM();
     }
 
@@ -398,8 +403,10 @@ export class Engine {
 
             if (isEvo && upgrade.evoApply) {
                 upgrade.evoApply(this.player);
+                soundManager.play('evolution', 'sfx', 1.0);
             } else {
                 upgrade.apply(this.player);
+                soundManager.play('upgrade_select', 'sfx', 0.6);
             }
             upgrade.count++;
         }
@@ -408,6 +415,7 @@ export class Engine {
     }
 
     destroy() {
+        soundManager.stopBGM();
         cancelAnimationFrame(this.animationId);
     }
 }

@@ -52,10 +52,11 @@ export class Pickup {
                     if ((player as any).applyPowerup) {
                         (player as any).applyPowerup(this.powerupType, duration);
                     }
-                    soundManager.play('powerup', 0.4); // Need a sound? Reuse collect for now if fail
+                    soundManager.play('powerup', 'sfx', 0.5); // Unified powerup sound
                 } else {
                     player.gainXp(this.value);
-                    soundManager.play('collect', 0.1);
+                    // Low volume for XP, slight pitch variance to make it sparkly
+                    soundManager.play('collect', 'sfx', 0.15, false, 0.1);
                 }
                 this.dead = true;
             }

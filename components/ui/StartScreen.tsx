@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Shield, Skull, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { soundManager } from '@/lib/game/SoundManager';
 
 interface StartScreenProps {
     onStart: (diff: 'easy' | 'medium' | 'hard') => void;
@@ -11,6 +12,16 @@ interface StartScreenProps {
 
 export default function StartScreen({ onStart, onTitleClick }: StartScreenProps) {
     const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy');
+
+    useEffect(() => {
+        // Preload and play menu music
+        soundManager.preload().then(() => {
+            soundManager.playMenuBGM(0.6);
+        });
+        return () => {
+            soundManager.stopMenuBGM();
+        };
+    }, []);
 
     const difficulties = [
         { id: 'easy', label: 'EASY', color: 'text-[#00ffcc]', borderColor: 'border-[#00ffcc]', bgColor: 'bg-[#00ffcc]', glowColor: 'rgba(0,255,204,0.3)', icon: Shield },

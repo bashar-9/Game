@@ -283,7 +283,8 @@ export class Player {
 
             bullets.push(new Bullet(this.x, this.y, vx, vy, finalDamage, this.pierce, this.bulletSize, isCrit));
         }
-        soundManager.play('shoot', 0.05);
+        // Lower volume for rapid fire, add pitch variance of 0.1
+        soundManager.play('shoot', 'sfx', 0.15, false, 0.1);
     }
 
     gainXp(amount: number) {
@@ -298,7 +299,7 @@ export class Player {
 
         this.hp -= amount;
         this.invincibilityTimer = 30; // 0.5s Immunity
-        soundManager.play('damage', 0.3);
+        soundManager.play('damage', 'sfx', 0.4);
         this.callbacks.onCreateParticles(this.x, this.y, 5, CONFIG.COLORS.danger);
         this.syncStats();
         this.syncStats();

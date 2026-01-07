@@ -5,6 +5,7 @@ import { UPGRADES_LIST, Upgrade } from '@/lib/config';
 
 import { IPlayer } from '@/lib/game/types';
 import { useGameStore } from '@/store/useGameStore';
+import { soundManager } from '@/lib/game/SoundManager';
 
 interface UpgradeMenuProps {
     onSelect: (id: string) => void;
@@ -38,6 +39,7 @@ export default function UpgradeMenu({ onSelect, player }: UpgradeMenuProps) {
             const currentIds = options.map(o => o.id);
             setOptions(generateOptions(currentIds));
             setRerollKey(k => k + 1);
+            soundManager.play('upgrade_reroll', 'sfx', 0.8);
         }
     };
 

@@ -8,7 +8,13 @@ interface PauseMenuProps {
     onQuit: () => void;
 }
 
+import { useEffect } from 'react';
+import { soundManager } from '@/lib/game/SoundManager';
+
 export default function PauseMenu({ onResume, onQuit }: PauseMenuProps) {
+    useEffect(() => {
+        soundManager.play('menu_open', 'ui');
+    }, []);
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-black/90 via-slate-900/90 to-black/90 backdrop-blur-xl z-50 p-4">
             {/* Ambient glow effects */}

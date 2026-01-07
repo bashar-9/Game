@@ -2,7 +2,8 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { UPGRADES_LIST } from '@/lib/config';
-import { Shield, Zap, Skull } from 'lucide-react';
+import { Shield, Zap, Skull, Volume2, Music, Speaker } from 'lucide-react';
+import { soundManager, AudioCategory } from '@/lib/game/SoundManager';
 
 interface DevMenuProps {
     onStart: (config: { level: number; upgrades: Record<string, number>; startTime?: number; difficulty?: 'easy' | 'medium' | 'hard' }) => void;
@@ -14,6 +15,25 @@ export default function DevMenu({ onStart, onClose }: DevMenuProps) {
     const [startTime, setStartTime] = useState(0);
     const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy');
     const [upgrades, setUpgrades] = useState<Record<string, number>>({});
+    const [volumes, setVolumes] = useState<Record<AudioCategory, number>>({
+        master: 1, music: 0.6, sfx: 0.8, ui: 1
+    });
+
+    useEffect(() => {
+        // Sync initial volumes
+        setVolumes({
+            master: soundManager.getChannelState('master').volume,
+            music: soundManager.getChannelState('music').volume,
+            sfx: soundManager.getChannelState('sfx').volume,
+            ui: soundManager.getChannelState('ui').volume
+        });
+    }, []);
+
+    const handleVolumeChange = (cat: AudioCategory, val: number) => {
+        const newVol = parseFloat(val.toFixed(2));
+        setVolumes(prev => ({ ...prev, [cat]: newVol }));
+        soundManager.setVolume(cat, newVol);
+    };
 
     const difficulties = [
         { id: 'easy', label: 'EASY', color: 'text-[#00ffcc]', borderColor: 'border-[#00ffcc]', icon: Shield },
@@ -118,6 +138,35 @@ export default function DevMenu({ onStart, onClose }: DevMenuProps) {
                                     </button>
                                 );
                             })}
+                        </div>
+                    </div>
+
+                    {/* Audio Mixer */}
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Audio Mixer</label>
+                        <div className="grid grid-cols-1 gap-2 bg-white/5 p-3 rounded-xl border border-white/5">
+                            {(['master', 'music', 'sfx'] as AudioCategory[]).map(cat => (
+                                <div key={cat} className="flex items-center gap-3">
+                                    <div className="w-6 text-white/40">
+                                        {cat === 'master' ? <Volume2 size={14} /> : cat === 'music' ? <Music size={14} /> : <Speaker size={14} />}
+                                    </div>
+                                    <div className="flex-1 flex flex-col">
+                                        <div className="flex justify-between text-[9px] uppercase font-bold text-white/40 mb-1">
+                                            <span>{cat}</span>
+                                            <span className="text-[#00ffcc]">{Math.round(volumes[cat] * 100)}%</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="1"
+                                            step="0.05"
+                                            value={volumes[cat]}
+                                            onChange={(e) => handleVolumeChange(cat, parseFloat(e.target.value))}
+                                            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#00ffcc]"
+                                        />
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
