@@ -37,20 +37,20 @@ export const BASE_STATS = {
         baseSpeed: 4,
         baseHp: 300,
         xpToNext: 50,
-        attackSpeed: 18, // Buffed: Faster firing (was 21)
-        damage: 30,      // Buffed: One-shot basics (was 25)
+        attackSpeed: 17, // Buffed: Faster firing (was 18)
+        damage: 30,
         projectileCount: 1,
         pierce: 1,
-        bulletSpeed: 12,
+        bulletSpeed: 16,
         bulletSize: 5,
         bulletSizeMobile: 3,
         pickupRange: 220,
-        regen: 1,
+        regen: 3,
         repulsionBaseRange: 90,
         repulsionBaseRangeMobile: 70,
         repulsionForce: 0.15,
-        critChance: 0.05,
-        critMultiplier: 1.4
+        critChance: 0.25,
+        critMultiplier: 1.75
     },
     enemies: {
         swarm: {
@@ -111,10 +111,10 @@ export const UPGRADES_LIST: Upgrade[] = [
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'multishot'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'haste', count: 0, name: 'Hyper-Loader', desc: 'Increases weapon firing rate.', stat: '+25% Attack Speed', icon: '⚡', maxLevel: 15,
-        apply: (p: IPlayer) => { p.modifiers.attackSpeed += 0.25; (p as any).recalculateStats(); },
+        id: 'haste', count: 0, name: 'Hyper-Loader', desc: 'Increases weapon firing rate.', stat: '+30% Attack Speed', icon: '⚡', maxLevel: 15,
+        apply: (p: IPlayer) => { p.modifiers.attackSpeed += 0.30; (p as any).recalculateStats(); },
         evoName: 'Minigun Mech', evoDesc: 'EVOLUTION: Massive Attack Speed boost.', evoApply: (p: IPlayer) => { p.modifiers.attackSpeed += 0.6; (p as any).recalculateStats(); },
-        getCurrentStat: (c) => `+${Math.round(c * 25)}% Atk Spd`,
+        getCurrentStat: (c) => `+${Math.round(c * 30)}% Atk Spd`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'haste'); return u ? u.count >= u.maxLevel : false; }
     },
     {
@@ -139,17 +139,17 @@ export const UPGRADES_LIST: Upgrade[] = [
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'pierce'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'maxhp', count: 0, name: 'Titan Plating', desc: 'Reinforces hull integrity.', stat: '+100 Max HP', icon: '🛡️', maxLevel: 15,
-        apply: (p: IPlayer) => { p.maxHp += 100; p.hp += 100; },
+        id: 'maxhp', count: 0, name: 'Titan Plating', desc: 'Reinforces hull integrity.', stat: '+150 Max HP', icon: '🛡️', maxLevel: 15,
+        apply: (p: IPlayer) => { p.maxHp += 150; p.hp += 150; },
         evoName: 'Behemoth Hull', evoDesc: 'EVOLUTION: +75 Max HP & 50% Heal.', evoApply: (p: IPlayer) => { p.maxHp += 75; p.hp = Math.min(p.maxHp, p.hp + (p.maxHp * 0.5)); },
-        getCurrentStat: (c) => `+${c * 100} Max HP`,
+        getCurrentStat: (c) => `+${c * 150} Max HP`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'maxhp'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'regen', count: 0, name: 'Nano Repair', desc: 'Activates passive regeneration.', stat: '+3 HP / Sec', icon: '💊', maxLevel: 10,
-        apply: (p: IPlayer) => p.regen += 3,
+        id: 'regen', count: 0, name: 'Nano Repair', desc: 'Activates passive regeneration.', stat: '+5 HP / Sec', icon: '💊', maxLevel: 10,
+        apply: (p: IPlayer) => p.regen += 5,
         evoName: 'Living Metal', evoDesc: 'EVOLUTION: +5 Regeneration/sec.', evoApply: (p: IPlayer) => p.regen += 5,
-        getCurrentStat: (c) => `+${c * 3} HP / Sec`,
+        getCurrentStat: (c) => `+${c * 5} HP / Sec`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'regen'); return u ? u.count >= u.maxLevel : false; }
     },
     {
@@ -173,10 +173,10 @@ export const UPGRADES_LIST: Upgrade[] = [
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'critChance'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'critDamage', count: 0, name: 'Gauss Coil', desc: 'Increases critical hit damage.', stat: '+15% Crit Dmg', icon: '🔋', maxLevel: 10,
-        apply: (p: IPlayer) => p.critMultiplier += 0.15,
+        id: 'critDamage', count: 0, name: 'Gauss Coil', desc: 'Increases critical hit damage.', stat: '+25% Crit Dmg', icon: '🔋', maxLevel: 10,
+        apply: (p: IPlayer) => p.critMultiplier += 0.25,
         evoName: 'Railgun', evoDesc: 'EVOLUTION: +10% Crit Dmg.', evoApply: (p: IPlayer) => p.critMultiplier += 0.10,
-        getCurrentStat: (c) => `+${c * 15}% Crit Dmg`,
+        getCurrentStat: (c) => `+${c * 25}% Crit Dmg`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'critDamage'); return u ? u.count >= u.maxLevel : false; }
     }
 ];

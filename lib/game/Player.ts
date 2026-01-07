@@ -205,12 +205,14 @@ export class Player {
 
     applyRepulsionField(enemies: Enemy[], frameCount: number) {
         const stats = BASE_STATS.player;
-        const levelCapArea = Math.min(this.repulsionLevel, 4);
+        const levelCapArea = Math.min(this.repulsionLevel, 8); // Buffed: Cap raised to 8 (was 4)
         const radiusGrowth = levelCapArea * 20;
         const baseRange = CONFIG.IS_MOBILE ? stats.repulsionBaseRangeMobile : stats.repulsionBaseRange;
         const range = baseRange + radiusGrowth;
 
-        const forceBase = stats.repulsionForce;
+        // Buffed: Force scales by 5% per level (Base * (1 + 0.05 * Level))
+        const forceMult = 1 + (this.repulsionLevel * 0.05);
+        const forceBase = stats.repulsionForce * forceMult;
 
         for (const e of enemies) {
             const dx = e.x - this.x;
@@ -228,8 +230,8 @@ export class Player {
                 e.pushY += ny * effectiveForce;
 
                 if (frameCount % 15 === 0) {
-                    // New Formula: 30% Base + 5% per level
-                    const burnDmg = Math.max(1, Math.floor(this.damage * (0.30 + (this.repulsionLevel * 0.05))));
+                    // New Formula: 30% Base + 10% per level (Buffed from 5%)
+                    const burnDmg = Math.max(1, Math.floor(this.damage * (0.30 + (this.repulsionLevel * 0.10))));
                     e.takeHit(burnDmg);
                     if (Math.random() > 0.7) {
                         this.callbacks.onCreateParticles(e.x, e.y, 1, '#ff5500');
@@ -365,7 +367,7 @@ export class Player {
         // Repulsion Visual (Dynamic, keep drawing it)
         if (this.repulsionLevel > 0) {
             const stats = BASE_STATS.player;
-            const levelCapArea = Math.min(this.repulsionLevel, 4);
+            const levelCapArea = Math.min(this.repulsionLevel, 8); // Buffed: Match logic in applyRepulsionField
             const radiusGrowth = levelCapArea * 20;
             const baseRange = CONFIG.IS_MOBILE ? stats.repulsionBaseRangeMobile : stats.repulsionBaseRange;
             const range = baseRange + radiusGrowth;

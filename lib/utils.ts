@@ -12,12 +12,27 @@ export function formatTime(t: number): string {
 }
 
 export function showDamage(x: number, y: number, amount: number, isCrit: boolean = false) {
-    // Optimization: Drastically reduce non-crit text
-    // Only show 10% of normal hits, or if there are too many (50+), stop showing non-crits entirely
+    // VISUAL CLUTTER REDUCTION
+    const existing = document.getElementsByClassName('damage-popup');
+    const count = existing.length;
+
+    // 1. Hard Global Cap: Absolute max 25 numbers on screen
+    if (count >= 25) return;
+
+    // 2. Non-Crit Throttling:
+    // If > 10 items, stop showing non-crits
     if (!isCrit) {
+        if (count > 10) return;
+        // Even if low count, only show 10% of non-crits to keep it clean
         if (Math.random() > 0.1) return;
-        if (document.getElementsByClassName('damage-popup').length > 50) return;
     }
+
+    // 3. Crit Throttling:
+    // If > 15 items, randomly skip 50% of crits to prevent "Wall of Gold"
+    if (isCrit && count > 15) {
+        if (Math.random() > 0.5) return;
+    }
+
     const el = document.createElement('div');
     el.className = 'damage-popup';
     el.style.left = x + 'px';
@@ -26,13 +41,18 @@ export function showDamage(x: number, y: number, amount: number, isCrit: boolean
 
     if (isCrit) {
         el.style.color = '#ffd700'; // Gold
-        el.style.fontSize = '28px';
-        el.style.textShadow = '0 0 10px #ff9900';
+        el.style.fontSize = '24px'; // Reduced from 28px
+        el.style.fontWeight = 'bold';
+        el.style.textShadow = '0 0 5px #ff9900'; // Reduced bloom
         el.style.zIndex = '101';
+    } else {
+        // Standard hit styling for visibility if needed
+        el.style.fontSize = '14px';
+        el.style.opacity = '0.8';
     }
 
     document.body.appendChild(el);
-    setTimeout(() => el.remove(), 800);
+    setTimeout(() => el.remove(), 600); // Faster fade (was 800)
 }
 
 import { JoystickState } from './game/types';
