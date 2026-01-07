@@ -1,62 +1,82 @@
-# Void Swarm - Operation Anima
+# VOID SWARM
 
-A high-intensity browser-based survival game built with **Next.js**, **TypeScript**, and **Canvas API**.
+A high-intensity browser-based survival shooter built with **Next.js 14**, **TypeScript**, and **HTML5 Canvas**.
 
-## 🎮 Game Overview
-Defend the system core against endless waves of viral entities. Collect data (XP), upgrade your defense protocols, and survive as long as possible.
+## 🎮 About
 
-**Current Version:** 2.0 (Next.js Refactor)
+Defend against endless waves of viral entities. Collect XP, upgrade your systems, and survive as long as possible. Features procedural difficulty scaling, 10+ upgrades with evolution paths, and a premium cyberpunk UI.
 
-## 🚀 Tech Stack
-- **Framework:** Next.js 14 (App Router)
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS
-- **State Management:** Zustand
-- **Graphics:** HTML5 Canvas (Custom Engine)
+## ✨ Features
 
-## 🛠️ Getting Started
+- **Survival Gameplay** - Endless waves with dynamic difficulty scaling
+- **Upgrade System** - 10+ unique upgrades with evolution milestones
+- **3 Difficulty Modes** - Easy, Medium, Hard
+- **Responsive Design** - Desktop & mobile optimized
+- **Touch Controls** - Virtual joystick for mobile devices
+- **Premium UI** - Glassmorphism, animations, and visual effects
 
-### Prerequisites
-- Node.js (v18+)
-- npm or yarn
+## 🛠️ Tech Stack
 
-### Installation
-1.  Navigate to the project directory:
-    ```bash
-    cd swarmjs
-    ```
-2.  Install dependencies:
-    ```bash
-    npm install
-    ```
-3.  Run the development server:
-    ```bash
-    npm run dev
-    ```
-4.  Open [http://localhost:3000](http://localhost:3000) in your browser.
+| Technology | Purpose |
+|------------|---------|
+| Next.js 14 | Framework (App Router) |
+| TypeScript | Type-safe development |
+| Tailwind CSS | Styling |
+| Zustand | State management |
+| HTML5 Canvas | Game rendering |
+
+## 🚀 Quick Start
+
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
+Open [http://localhost:3000](http://localhost:3000)
 
 ## 🕹️ Controls
-- **Movement:** `W`, `A`, `S`, `D` or Arrow Keys
-- **Pause:** `Esc`
-- **Mobile:** Touch Joystick enabled on touch devices
 
-## 📂 Project Structure
+| Input | Action |
+|-------|--------|
+| WASD / Arrow Keys | Move |
+| ESC | Pause |
+| Touch | Virtual joystick (mobile) |
+
+## 📁 Structure
+
 ```
-swarmjs/
-├── app/                  # Next.js App Router pages
+├── app/              # Next.js pages & global styles
 ├── components/
-│   ├── game/             # Game Canvas component
-│   └── ui/               # React UI Logic (HUD, Modals)
+│   ├── game/         # Canvas game component
+│   └── ui/           # UI components (HUD, menus)
 ├── lib/
-│   ├── game/             # Pure TypeScript Game Engine & Entity Classes
-│   ├── config.ts         # Game Constants & Balance Settings
-│   └── utils.ts          # Helpers
-└── store/                # Zustand State Store
+│   ├── game/         # Game engine & entities
+│   └── config.ts     # Balance & settings
+└── store/            # Zustand state
 ```
 
 ## ⚙️ Configuration
-Game balance (Health, Damage, Spawn Rates) can be tweaked in:
-`lib/config.ts`
+
+Game balance can be adjusted in `lib/config.ts`:
+- Player stats (HP, speed, damage)
+- Enemy parameters
+- Upgrade values & max levels
+- Difficulty multipliers
+
+## 🎨 Design System
+
+| Color | Hex | Usage |
+|-------|-----|-------|
+| Cyan | `#00ffcc` | Primary, Easy mode |
+| Yellow | `#ffee00` | XP, Medium mode |
+| Red | `#ff0055` | Danger, Hard mode |
 
 ## 📄 License
+
 MIT

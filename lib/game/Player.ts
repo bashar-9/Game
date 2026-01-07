@@ -56,7 +56,7 @@ export class Player {
     static CACHE_SIZE = 80; // Larger for player
     static CACHE_HALF = 40;
 
-    constructor(canvasWidth: number, canvasHeight: number, diffMode: 'easy' | 'normal' | 'hard', callbacks: PlayerCallbacks) {
+    constructor(canvasWidth: number, canvasHeight: number, diffMode: 'easy' | 'medium' | 'hard', callbacks: PlayerCallbacks) {
         this.x = canvasWidth / 2;
         this.y = canvasHeight / 2;
         this.rotation = 0;

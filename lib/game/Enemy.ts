@@ -25,7 +25,7 @@ export class Enemy {
     static CACHE_SIZE = 64;
     static CACHE_HALF = 32;
 
-    constructor(type: 'basic' | 'tank' | 'swarm', canvasWidth: number, canvasHeight: number, playerLevel: number, diffMode: 'easy' | 'normal' | 'hard', diffLevel: number) {
+    constructor(type: 'basic' | 'tank' | 'swarm', canvasWidth: number, canvasHeight: number, playerLevel: number, diffMode: 'easy' | 'medium' | 'hard', diffLevel: number) {
         // Spawn logic
         const edge = Math.floor(Math.random() * 4);
         const buffer = 50;

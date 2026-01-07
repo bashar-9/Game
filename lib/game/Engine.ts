@@ -32,11 +32,11 @@ export class Engine {
     frames: number = 0;
 
     difficulty: number = 1;
-    diffMode: 'easy' | 'normal' | 'hard' = 'normal';
+    diffMode: 'easy' | 'medium' | 'hard' = 'easy';
 
     stars: { x: number, y: number, size: number, alpha: number }[] = [];
 
-    constructor(canvas: HTMLCanvasElement, diffMode: 'easy' | 'normal' | 'hard' = 'normal') {
+    constructor(canvas: HTMLCanvasElement, diffMode: 'easy' | 'medium' | 'hard' = 'easy') {
         // Reset global upgrade state to prevent Sticky/Double-Init issues
         resetUpgrades();
 
@@ -114,6 +114,13 @@ export class Engine {
 
             // Sync initial state to UI
             this.player.syncStats();
+
+            // Set Start Time
+            if (devConfig.startTime) {
+                console.log(`Setting Start Time to ${devConfig.startTime} min`);
+                this.gameTime = devConfig.startTime * 60;
+                useGameStore.getState().setTime(this.gameTime);
+            }
         }
 
         this.bindEvents();

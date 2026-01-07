@@ -98,7 +98,7 @@ export default function HUD() {
                         onClick={() => setPaused(true)}
                         className="p-1.5 md:p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors backdrop-blur-md"
                     >
-                        <Pause className="w-4 h-4 md:w-5 md:h-5 text-yellow-400" />
+                        <Pause className="w-4 h-4 md:w-5 md:h-5 text-[#ffee00]" />
                     </button>
                 </div>
             </div>
@@ -116,12 +116,12 @@ export default function HUD() {
                         case 'double_stats':
                             label = "DOUBLE STATS";
                             sub = "3x Damage & Speed";
-                            color = "text-red-500";
+                            color = "text-[#ff0055]";
                             break;
                         case 'invulnerability':
                             label = "INVULNERABLE";
                             sub = "Damage Immune";
-                            color = "text-yellow-400";
+                            color = "text-[#ffee00]";
                             break;
                         case 'magnet':
                             label = "MAGNET";

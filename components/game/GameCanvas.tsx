@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { Engine } from '@/lib/game/Engine';
 
 interface GameCanvasProps {
-    diffMode: 'easy' | 'normal' | 'hard';
+    diffMode: 'easy' | 'medium' | 'hard';
     gameRunning: boolean;
     onEngineInit?: (engine: Engine) => void;
 }

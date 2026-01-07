@@ -16,7 +16,7 @@ import { resetUpgrades } from '@/lib/config';
 export default function Home() {
 
   const [gameState, setGameState] = useState<'start' | 'playing'>('start');
-  const [diffMode, setDiffMode] = useState<'easy' | 'normal' | 'hard'>('normal');
+  const [diffMode, setDiffMode] = useState<'easy' | 'medium' | 'hard'>('easy');
   const [showDevMenu, setShowDevMenu] = useState(false);
   const engineRef = useRef<Engine | null>(null);
 
@@ -33,7 +33,7 @@ export default function Home() {
   const isPaused = useGameStore(s => s.isPaused);
   const resetStore = useGameStore(s => s.reset);
 
-  const startGame = (difficulty: 'easy' | 'normal' | 'hard', initialConfig?: { level: number; upgrades: Record<string, number> }) => {
+  const startGame = (difficulty: 'easy' | 'medium' | 'hard', initialConfig?: { level: number; upgrades: Record<string, number>; startTime?: number }) => {
     resetUpgrades();
     resetStore();
     setDiffMode(difficulty);
@@ -102,7 +102,7 @@ export default function Home() {
           {showDevMenu && (
             <DevMenu
               onStart={(cfg) => {
-                startGame('normal', cfg);
+                startGame('easy', cfg);
                 setShowDevMenu(false);
               }}
               onClose={() => setShowDevMenu(false)}
