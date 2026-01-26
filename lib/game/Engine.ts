@@ -29,7 +29,12 @@ export class Engine {
     animationId: number = 0;
     lastTime: number = 0;
     gameTime: number = 0;
+    gameTimeAccumulator: number = 0;
     frames: number = 0;
+
+    // Target FPS for delta calculations (game was tuned for 60 FPS)
+    static readonly TARGET_FPS = 60;
+    static readonly FRAME_TIME = 1000 / 60; // ~16.67ms
 
     difficulty: number = 1;
     diffMode: 'easy' | 'medium' | 'hard' = 'easy';
@@ -235,11 +240,18 @@ export class Engine {
 
     update() {
         const now = performance.now();
-        // const dt = (now - this.lastTime) / 1000; // Unused
+        const deltaMs = now - this.lastTime;
         this.lastTime = now;
 
-        if (this.frames % 60 === 0) {
+        // Delta multiplier: 1.0 at 60 FPS, 0.5 at 120 FPS, 2.0 at 30 FPS
+        // Clamp to prevent physics issues on very slow frames
+        const delta = Math.min(deltaMs / Engine.FRAME_TIME, 3.0);
+
+        // Time tracking using accumulator for frame-rate independence
+        this.gameTimeAccumulator += deltaMs;
+        if (this.gameTimeAccumulator >= 1000) {
             this.gameTime++;
+            this.gameTimeAccumulator -= 1000;
             useGameStore.getState().setTime(this.gameTime);
             this.difficulty = getDifficulty(this.gameTime);
         }
@@ -263,11 +275,11 @@ export class Engine {
             this.enemies.push(new Enemy(type, this.width, this.height, this.player.level, this.diffMode, this.difficulty));
         }
 
-        this.player.update(this.keys, this.joystick, this.enemies, this.bullets, this.frames, this.width, this.height);
+        this.player.update(this.keys, this.joystick, this.enemies, this.bullets, this.frames, this.width, this.height, delta);
 
         for (let i = this.enemies.length - 1; i >= 0; i--) {
             const e = this.enemies[i];
-            e.update(this.player, this.enemies);
+            e.update(this.player, this.enemies, delta);
             if (e.hp <= 0) {
                 // Drop Logic: Calculate Gem Multiplier
                 let multiplier = 1;
@@ -313,7 +325,7 @@ export class Engine {
 
         for (let i = this.bullets.length - 1; i >= 0; i--) {
             const b = this.bullets[i];
-            b.update(this.enemies, this.particles);
+            b.update(this.enemies, this.particles, delta);
             if (b.life <= 0 || b.x < 0 || b.x > this.width || b.y < 0 || b.y > this.height) {
                 this.bullets.splice(i, 1);
             }
@@ -321,13 +333,13 @@ export class Engine {
 
         for (let i = this.pickups.length - 1; i >= 0; i--) {
             const p = this.pickups[i];
-            p.update(this.player);
+            p.update(this.player, delta);
             if (p.dead) this.pickups.splice(i, 1);
         }
 
         for (let i = this.particles.length - 1; i >= 0; i--) {
             const p = this.particles[i];
-            p.update();
+            p.update(delta);
             if (p.life <= 0) this.particles.splice(i, 1);
         }
     }

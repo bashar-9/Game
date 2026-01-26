@@ -19,10 +19,10 @@ export class Particle {
         this.decay = 0.08;
     }
 
-    update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        this.life -= this.decay;
+    update(delta: number = 1) {
+        this.x += this.vx * delta;
+        this.y += this.vy * delta;
+        this.life -= this.decay * delta;
     }
 
     draw(ctx: CanvasRenderingContext2D) {

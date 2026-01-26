@@ -129,11 +129,14 @@ export class Player {
         this.callbacks.onLevelUp();
     }
 
-    update(keys: Record<string, boolean>, joystick: JoystickState, enemies: Enemy[], bullets: Bullet[], frameCount: number, canvasWidth: number, canvasHeight: number) {
-        // Regen
-        if (this.regen > 0 && frameCount % 60 === 0 && this.hp < this.maxHp) {
-            this.hp = Math.min(this.maxHp, this.hp + this.regen);
-            this.syncStats();
+    update(keys: Record<string, boolean>, joystick: JoystickState, enemies: Enemy[], bullets: Bullet[], frameCount: number, canvasWidth: number, canvasHeight: number, delta: number = 1) {
+        // Regen - use accumulator for frame-rate independence
+        if (this.regen > 0 && this.hp < this.maxHp) {
+            // Regen is HP per second, apply delta-scaled amount
+            const regenPerFrame = (this.regen / 60) * delta;
+            this.hp = Math.min(this.maxHp, this.hp + regenPerFrame);
+            // Only sync stats periodically to avoid spam
+            if (frameCount % 30 === 0) this.syncStats();
         }
 
         // Movement
@@ -153,8 +156,8 @@ export class Player {
             const divisor = (mag > 1 || !joystick.active) ? mag : 1;
             mx /= divisor;
             my /= divisor;
-            this.x += mx * this.speed;
-            this.y += my * this.speed;
+            this.x += mx * this.speed * delta;
+            this.y += my * this.speed * delta;
             this.x = Math.max(this.radius, Math.min(canvasWidth - this.radius, this.x));
             this.y = Math.max(this.radius, Math.min(canvasHeight - this.radius, this.y));
 
@@ -164,7 +167,7 @@ export class Player {
         }
 
         // Attack
-        if (this.attackCooldown > 0) this.attackCooldown--;
+        if (this.attackCooldown > 0) this.attackCooldown -= delta;
         else {
             const target = this.findNearestEnemy(enemies);
             if (target) {
@@ -177,9 +180,9 @@ export class Player {
         }
 
         // Repulsion Field
-        if (this.repulsionLevel > 0) this.applyRepulsionField(enemies, frameCount);
+        if (this.repulsionLevel > 0) this.applyRepulsionField(enemies, frameCount, delta);
 
-        if (this.invincibilityTimer > 0) this.invincibilityTimer--;
+        if (this.invincibilityTimer > 0) this.invincibilityTimer -= delta;
 
         // Update Powerups
         let statsChanged = false;
@@ -187,8 +190,9 @@ export class Player {
         (Object.keys(this.powerups) as PowerupType[]).forEach(key => {
             if (this.powerups[key] > 0) {
                 hasActivePowerups = true;
-                this.powerups[key]--;
+                this.powerups[key] -= delta;
                 if (this.powerups[key] <= 0) {
+                    this.powerups[key] = 0;
                     statsChanged = true;
                 }
             }
@@ -203,7 +207,7 @@ export class Player {
         }
     }
 
-    applyRepulsionField(enemies: Enemy[], frameCount: number) {
+    applyRepulsionField(enemies: Enemy[], frameCount: number, delta: number = 1) {
         const stats = BASE_STATS.player;
         const levelCapArea = Math.min(this.repulsionLevel, 8); // Buffed: Cap raised to 8 (was 4)
         const radiusGrowth = levelCapArea * 20;
@@ -225,10 +229,11 @@ export class Player {
                 const nx = dx / dist;
                 const ny = dy / dist;
 
-                const effectiveForce = forceBase / e.mass;
+                const effectiveForce = (forceBase / e.mass) * delta;
                 e.pushX += nx * effectiveForce;
                 e.pushY += ny * effectiveForce;
 
+                // Burn damage every ~15 frames (use frame count for consistency)
                 if (frameCount % 15 === 0) {
                     // New Formula: 30% Base + 10% per level (Buffed from 5%)
                     const burnDmg = Math.max(1, Math.floor(this.damage * (0.30 + (this.repulsionLevel * 0.10))));

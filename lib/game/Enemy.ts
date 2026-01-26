@@ -79,15 +79,17 @@ export class Enemy {
         showDamage(this.x, this.y, amount, isCrit);
     }
 
-    update(player: IPlayer, enemies: Enemy[]) {
+    update(player: IPlayer, enemies: Enemy[], delta: number = 1) {
         const angle = Math.atan2(player.y - this.y, player.x - this.x);
         this.rotation = angle; // Face player
 
-        this.x += Math.cos(angle) * this.speed + this.pushX;
-        this.y += Math.sin(angle) * this.speed + this.pushY;
+        this.x += (Math.cos(angle) * this.speed + this.pushX) * delta;
+        this.y += (Math.sin(angle) * this.speed + this.pushY) * delta;
 
-        this.pushX *= 0.8;
-        this.pushY *= 0.8;
+        // Push decay with delta (exponential decay)
+        const decayFactor = Math.pow(0.8, delta);
+        this.pushX *= decayFactor;
+        this.pushY *= decayFactor;
 
         // Soft collision between enemies
         for (const other of enemies) {
@@ -100,8 +102,8 @@ export class Enemy {
             if (distSq < radSum * radSum) {
                 const dist = Math.sqrt(distSq);
                 const force = (radSum - dist) / radSum;
-                const fx = (dx / dist) * force * 0.4;
-                const fy = (dy / dist) * force * 0.4;
+                const fx = (dx / dist) * force * 0.4 * delta;
+                const fy = (dy / dist) * force * 0.4 * delta;
                 this.x += fx; this.y += fy;
                 other.x -= fx; other.y -= fy;
             }

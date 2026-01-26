@@ -30,13 +30,13 @@ export class Pickup {
         this.dead = false;
     }
 
-    update(player: IPlayer) { // Type 'any' for now to avoid circular dependency
+    update(player: IPlayer, delta: number = 1) { // Type 'any' for now to avoid circular dependency
         const dist = Math.hypot(player.x - this.x, player.y - this.y);
         if (dist < player.pickupRange) this.magnetized = true;
 
         if (this.magnetized) {
             const angle = Math.atan2(player.y - this.y, player.x - this.x);
-            const speed = 14;
+            const speed = 14 * delta;
             this.x += Math.cos(angle) * speed;
             this.y += Math.sin(angle) * speed;
             if (dist < player.radius + 10) {

@@ -35,10 +35,10 @@ export class Bullet {
         this.getSprite();
     }
 
-    update(enemies: IEnemy[], particles: Particle[]) {
-        this.x += this.vx;
-        this.y += this.vy;
-        this.life--;
+    update(enemies: IEnemy[], particles: Particle[], delta: number = 1) {
+        this.x += this.vx * delta;
+        this.y += this.vy * delta;
+        this.life -= delta;
 
         for (const e of enemies) {
             if (this.hitList.includes(e)) continue;
