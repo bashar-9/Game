@@ -17,6 +17,7 @@ export class Enemy {
     damage: number;
     mass: number;
     color: string;
+    killedByShield: boolean;
 
     rotation: number;
 
@@ -69,6 +70,7 @@ export class Enemy {
         this.mass = stats.mass;
 
         this.maxHp = this.hp;
+        this.killedByShield = false;
 
         // Ensure we preload sprite if not exists
         this.getSprite();
@@ -111,7 +113,14 @@ export class Enemy {
 
         const d = Math.hypot(player.x - this.x, player.y - this.y);
         if (d < player.radius + this.radius) {
-            player.takeDamage(this.damage);
+            // Check if player has invulnerability shield active
+            if (player.hasInvulnerabilityShield && player.hasInvulnerabilityShield()) {
+                // Shield kills enemy on contact
+                this.hp = 0;
+                this.killedByShield = true;
+            } else {
+                player.takeDamage(this.damage);
+            }
             this.pushX = -Math.cos(angle) * 15;
             this.pushY = -Math.sin(angle) * 15;
         }

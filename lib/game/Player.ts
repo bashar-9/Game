@@ -303,7 +303,7 @@ export class Player {
         if (this.powerups['invulnerability'] > 0) return;
 
         this.hp -= amount;
-        this.invincibilityTimer = 30; // 0.5s Immunity
+        this.invincibilityTimer = 60; // 1s Immunity
         soundManager.play('damage', 'sfx', 0.4);
         this.callbacks.onCreateParticles(this.x, this.y, 5, CONFIG.COLORS.danger);
         this.syncStats();
@@ -325,6 +325,10 @@ export class Player {
     syncStats() {
         this.callbacks.onUpdateStats(this.hp, this.maxHp, this.xp, this.xpToNext, this.level, this.damage);
         this.callbacks.onUpdateActivePowerups({ ...this.powerups });
+    }
+
+    hasInvulnerabilityShield(): boolean {
+        return this.powerups['invulnerability'] > 0;
     }
 
     getSprite(): HTMLCanvasElement {
@@ -370,6 +374,39 @@ export class Player {
 
 
     draw(ctx: CanvasRenderingContext2D, frameCount: number) {
+        // Invulnerability Shield Visual
+        if (this.powerups['invulnerability'] > 0) {
+            const shieldRadius = this.radius * 4.5;
+            const pulseScale = 1 + Math.sin(frameCount * 0.15) * 0.1;
+            const effectiveRadius = shieldRadius * pulseScale;
+
+            // Outer glow
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, effectiveRadius + 10, 0, Math.PI * 2);
+            const outerAlpha = 0.15 + Math.sin(frameCount * 0.1) * 0.05;
+            ctx.fillStyle = `rgba(255, 255, 0, ${outerAlpha})`;
+            ctx.fill();
+
+            // Main shield ring
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, effectiveRadius, 0, Math.PI * 2);
+            ctx.lineWidth = 3;
+            const ringAlpha = 0.6 + Math.sin(frameCount * 0.2) * 0.2;
+            ctx.strokeStyle = `rgba(255, 255, 100, ${ringAlpha})`;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#ffff00';
+            ctx.stroke();
+
+            // Inner shimmer
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, effectiveRadius * 0.85, 0, Math.PI * 2);
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = `rgba(255, 255, 200, ${ringAlpha * 0.5})`;
+            ctx.stroke();
+
+            ctx.shadowBlur = 0;
+        }
+
         // Repulsion Visual (Dynamic, keep drawing it)
         if (this.repulsionLevel > 0) {
             const stats = BASE_STATS.player;

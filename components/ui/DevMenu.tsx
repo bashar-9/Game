@@ -6,7 +6,7 @@ import { Shield, Zap, Skull, Volume2, Music, Speaker } from 'lucide-react';
 import { soundManager, AudioCategory } from '@/lib/game/SoundManager';
 
 interface DevMenuProps {
-    onStart: (config: { level: number; upgrades: Record<string, number>; startTime?: number; difficulty?: 'easy' | 'medium' | 'hard' }) => void;
+    onStart: (config: { level: number; upgrades: Record<string, number>; startTime?: number; difficulty?: 'easy' | 'medium' | 'hard'; powerups?: Record<string, boolean> }) => void;
     onClose: () => void;
 }
 
@@ -17,6 +17,11 @@ export default function DevMenu({ onStart, onClose }: DevMenuProps) {
     const [upgrades, setUpgrades] = useState<Record<string, number>>({});
     const [volumes, setVolumes] = useState<Record<AudioCategory, number>>({
         master: 1, music: 0.6, sfx: 0.8, ui: 1
+    });
+    const [powerups, setPowerups] = useState<Record<string, boolean>>({
+        double_stats: false,
+        invulnerability: false,
+        magnet: false
     });
 
     useEffect(() => {
@@ -77,7 +82,17 @@ export default function DevMenu({ onStart, onClose }: DevMenuProps) {
     };
 
     const handleStart = () => {
-        onStart({ level, upgrades, startTime, difficulty });
+        const activePowerups = Object.entries(powerups)
+            .filter(([_, active]) => active)
+            .reduce((acc, [key]) => ({ ...acc, [key]: true }), {} as Record<string, boolean>);
+
+        onStart({
+            level,
+            upgrades,
+            startTime,
+            difficulty,
+            powerups: Object.keys(activePowerups).length > 0 ? activePowerups : undefined
+        });
     };
 
     return (
@@ -226,6 +241,39 @@ export default function DevMenu({ onStart, onClose }: DevMenuProps) {
                                     +
                                 </button>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Active Powerups */}
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Active Powerups</label>
+                        <div className="grid grid-cols-3 gap-2">
+                            {[
+                                { id: 'double_stats', label: '3X STATS', color: '#ff0055', icon: '⚡' },
+                                { id: 'invulnerability', label: 'SHIELD', color: '#ffff00', icon: '🛡️' },
+                                { id: 'magnet', label: 'MAGNET', color: '#0088ff', icon: '🧲' }
+                            ].map(p => {
+                                const isActive = powerups[p.id];
+                                return (
+                                    <button
+                                        key={p.id}
+                                        onClick={() => setPowerups(prev => ({ ...prev, [p.id]: !prev[p.id] }))}
+                                        className={`
+                                            p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-1.5
+                                            ${isActive
+                                                ? `border-[${p.color}] bg-white/10`
+                                                : 'border-white/10 bg-white/[0.03] hover:bg-white/[0.06]'
+                                            }
+                                        `}
+                                        style={isActive ? { borderColor: p.color, backgroundColor: `${p.color}20` } : {}}
+                                    >
+                                        <span className="text-xl">{p.icon}</span>
+                                        <span className={`font-bold text-[9px] tracking-wider ${isActive ? 'text-white' : 'text-white/40'}`}>
+                                            {p.label}
+                                        </span>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 

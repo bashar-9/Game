@@ -127,6 +127,18 @@ export class Engine {
                 this.gameTime = devConfig.startTime * 60;
                 useGameStore.getState().setTime(this.gameTime);
             }
+
+            // Apply Active Powerups
+            if (devConfig.powerups) {
+                const { POWERUP_DURATIONS } = require('../config');
+                Object.entries(devConfig.powerups).forEach(([key, active]) => {
+                    if (active) {
+                        const duration = POWERUP_DURATIONS[key] || 900;
+                        console.log(`Activating powerup: ${key} for ${duration} frames`);
+                        this.player.applyPowerup(key as 'double_stats' | 'invulnerability' | 'magnet', duration);
+                    }
+                });
+            }
         }
 
         this.bindEvents();
@@ -301,6 +313,14 @@ export class Engine {
                 this.pickups.push(new Pickup(e.x, e.y, e.xpValue * multiplier, multiplier));
 
                 this.enemies.splice(i, 1);
+
+                // Shield kill effect - yellow sparks burst
+                if (e.killedByShield) {
+                    for (let j = 0; j < 8; j++) {
+                        this.particles.push(new Particle(e.x, e.y, '#ffff00'));
+                    }
+                }
+
                 // Explosion with variance
                 soundManager.play('explosion', 'sfx', 0.25, false, 0.2);
 

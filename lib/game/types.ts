@@ -24,6 +24,7 @@ export interface IPlayer {
 
     gainXp: (amount: number) => void;
     takeDamage: (amount: number) => void;
+    hasInvulnerabilityShield?: () => boolean;
 }
 
 export interface IEnemy {
