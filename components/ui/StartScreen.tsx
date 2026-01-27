@@ -84,7 +84,7 @@ export default function StartScreen({ onStart, onTitleClick }: StartScreenProps)
                                         isSelected ? `${mode.color} drop-shadow-lg` : "text-white/40"
                                     )} />
                                     <span className={cn(
-                                        "font-bold text-xs md:text-sm tracking-wider transition-colors",
+                                        "font-bold text-[10px] md:text-xs tracking-wider transition-colors text-center leading-tight",
                                         isSelected ? "text-white" : "text-white/40"
                                     )}>
                                         {mode.label}

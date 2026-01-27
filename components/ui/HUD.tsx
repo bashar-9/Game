@@ -103,58 +103,7 @@ export default function HUD() {
                 </div>
             </div>
 
-            {/* Active Powerups Display */}
-            <div className="absolute top-20 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none">
-                {Object.entries(useGameStore(state => state.activePowerups || {})).map(([type, duration]) => {
-                    if (duration <= 0) return null;
-
-                    let label = "";
-                    let sub = "";
-                    let color = "";
-
-                    switch (type) {
-                        case 'double_stats':
-                            label = "OVERCLOCK";
-                            sub = "3x Damage & Speed";
-                            color = "text-[#ff0055]";
-                            break;
-                        case 'invulnerability':
-                            label = "PRIVILEGE_ESC";
-                            sub = "Damage Immune";
-                            color = "text-[#ffee00]";
-                            break;
-                        case 'magnet':
-                            label = "DATA_SIPHON";
-                            sub = "Max Range";
-                            color = "text-blue-400";
-                            break;
-                    }
-
-                    if (!label) return null;
-
-                    // Get level for display
-                    // We can access store directly or via hook context if we wanted reactivity, 
-                    // but for HUD inside loop, let's just use the direct access for performance/simplicity or assume it doesn't change mid-game (it doesn't)
-                    const { usePowerUpProgressionStore } = require('../../store/PowerUpProgressionStore');
-                    const lvl = usePowerUpProgressionStore.getState().powerUpLevels[type] || 1;
-
-                    // Blink when low duration (< 2 seconds = 120 frames)
-                    const isLow = duration < 120;
-                    const opacity = isLow && Math.floor(Date.now() / 100) % 2 === 0 ? "opacity-30" : "opacity-100";
-                    const secondsLeft = Math.ceil(duration / 60);
-
-                    return (
-                        <div key={type} className={`flex flex-col items-center ${opacity} transition-opacity mb-4`}>
-                            <div className={`text-xl md:text-2xl font-black ${color} tracking-widest drop-shadow-[0_0_10px_rgba(0,0,0,0.8)] stroke-black flex items-center gap-2`}>
-                                {label} <span className="text-white text-sm bg-white/20 px-1.5 rounded">LVL {lvl}</span>
-                            </div>
-                            <div className="text-xs md:text-sm font-bold text-white/90 drop-shadow-md">
-                                {sub} • {secondsLeft}s
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
+            {/* Active Powerups moved to PowerupsHUD component */}
 
             {/* Bottom Bar (XP) */}
             <div className="absolute bottom-0 left-0 w-full p-0">

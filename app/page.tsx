@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import GameCanvas from '@/components/game/GameCanvas';
 import HUD from '@/components/ui/HUD';
+import PowerupsHUD from '@/components/ui/PowerupsHUD';
 import StartScreen from '@/components/ui/StartScreen';
 import GameOverScreen from '@/components/ui/GameOverScreen';
 import UpgradeMenu from '@/components/ui/UpgradeMenu';
@@ -119,6 +120,7 @@ export default function Home() {
             onEngineInit={handleEngineInit}
           />
           <HUD />
+          <PowerupsHUD />
 
           {isGameOver && <GameOverScreen onRestart={handleRestart} />}
           {isUpgradeMenuOpen && <UpgradeMenu onSelect={handleUpgradeSelect} player={engineRef.current?.player} />}
