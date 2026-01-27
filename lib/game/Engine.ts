@@ -6,6 +6,7 @@ import { Pickup } from './Pickup';
 import { Particle } from './Particle';
 import { drawJoystick, getDifficulty } from '../utils';
 import { useGameStore } from '../../store/useGameStore';
+import { usePowerUpProgressionStore } from '../../store/PowerUpProgressionStore';
 import { JoystickState } from './types';
 import { soundManager } from './SoundManager';
 
@@ -412,9 +413,12 @@ export class Engine {
 
     endGame() {
         useGameStore.getState().setGameOver(true);
-        useGameStore.getState().setGameOver(true);
         soundManager.play('game_over', 'sfx', 1.0);
         soundManager.stopBGM();
+
+        // Award kill points for this session
+        const sessionKills = useGameStore.getState().killCount;
+        usePowerUpProgressionStore.getState().addKills(sessionKills);
     }
 
     selectUpgrade(upgradeId: string) {

@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Shield, Skull, Zap } from 'lucide-react';
+import { Shield, Skull, Zap, ArrowUpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { soundManager } from '@/lib/game/SoundManager';
+import PowerUpUpgradeScreen from './PowerUpUpgradeScreen';
+import { usePowerUpProgressionStore } from '@/store/PowerUpProgressionStore';
 
 interface StartScreenProps {
     onStart: (diff: 'easy' | 'medium' | 'hard') => void;
@@ -12,6 +14,8 @@ interface StartScreenProps {
 
 export default function StartScreen({ onStart, onTitleClick }: StartScreenProps) {
     const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy');
+    const [showUpgradeScreen, setShowUpgradeScreen] = useState(false);
+    const availablePoints = usePowerUpProgressionStore((state) => state.getAvailablePoints());
 
     useEffect(() => {
         // Preload and play menu music
@@ -96,6 +100,25 @@ export default function StartScreen({ onStart, onTitleClick }: StartScreenProps)
                     </div>
                 </div>
 
+                {/* Upgrade Button */}
+                <button
+                    onClick={() => setShowUpgradeScreen(true)}
+                    className="group relative w-full py-3 mb-4 rounded-xl font-bold text-base uppercase tracking-wider
+                        bg-white/5 border border-white/10 hover:border-[#ffee00]/50 hover:bg-[#ffee00]/10
+                        hover:shadow-[0_0_20px_rgba(255,238,0,0.1)]
+                        transition-all duration-300"
+                >
+                    <span className="flex items-center justify-center gap-3 text-white/80 group-hover:text-[#ffee00] transition-colors">
+                        <ArrowUpCircle className="w-5 h-5" />
+                        POWER-UP UPGRADES
+                        {availablePoints > 0 && (
+                            <span className="ml-2 px-2 py-0.5 rounded-full bg-[#ffee00] text-black text-xs font-black animate-pulse">
+                                {availablePoints} PTS
+                            </span>
+                        )}
+                    </span>
+                </button>
+
                 {/* Start Button */}
                 <button
                     onClick={() => onStart(difficulty)}
@@ -110,8 +133,13 @@ export default function StartScreen({ onStart, onTitleClick }: StartScreenProps)
                 </button>
 
                 {/* Version */}
-                <p className="text-white/20 text-xs mt-6 font-mono">v1.0.0</p>
+                <p className="text-white/20 text-xs mt-6 font-mono">v1.1.0</p>
             </div>
+
+            {/* Upgrade Screen Overlay */}
+            {showUpgradeScreen && (
+                <PowerUpUpgradeScreen onClose={() => setShowUpgradeScreen(false)} />
+            )}
         </div>
     );
 }

@@ -41,11 +41,11 @@ export class Pickup {
             this.y += Math.sin(angle) * speed;
             if (dist < player.radius + 10) {
                 if (this.type === 'powerup' && this.powerupType) {
-                    // Duration: 10 seconds (600 frames)
-                    // If Double Stats -> 5 seconds per request? User said "double stats for 10 sec, 3x dmg for 5 sec".
-                    // Let's standardize or switch based on type.
-                    // User: "double stats for 10 sec", "magnet for 5 sec", "invuln for 10 sec"
-                    let duration = POWERUP_DURATIONS[this.powerupType] || 600;
+                    // Get upgraded duration from store
+                    // We dynamically import or use the store directly since it's a static method on the store hooks
+                    // Ideally we import it at the top, let's fix imports first
+                    const { usePowerUpProgressionStore } = require('../../store/PowerUpProgressionStore');
+                    let duration = usePowerUpProgressionStore.getState().getPowerUpDuration(this.powerupType);
 
                     // We need to cast player to Player class to use applyPowerup
                     // ideally IPlayer interface should have it, but for now:

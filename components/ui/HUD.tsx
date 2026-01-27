@@ -132,17 +132,24 @@ export default function HUD() {
 
                     if (!label) return null;
 
+                    // Get level for display
+                    // We can access store directly or via hook context if we wanted reactivity, 
+                    // but for HUD inside loop, let's just use the direct access for performance/simplicity or assume it doesn't change mid-game (it doesn't)
+                    const { usePowerUpProgressionStore } = require('../../store/PowerUpProgressionStore');
+                    const lvl = usePowerUpProgressionStore.getState().powerUpLevels[type] || 1;
+
                     // Blink when low duration (< 2 seconds = 120 frames)
                     const isLow = duration < 120;
                     const opacity = isLow && Math.floor(Date.now() / 100) % 2 === 0 ? "opacity-30" : "opacity-100";
+                    const secondsLeft = Math.ceil(duration / 60);
 
                     return (
-                        <div key={type} className={`flex flex-col items-center ${opacity} transition-opacity`}>
-                            <div className={`text-xl md:text-2xl font-black ${color} tracking-widest drop-shadow-[0_0_10px_rgba(0,0,0,0.8)] stroke-black`}>
-                                {label}
+                        <div key={type} className={`flex flex-col items-center ${opacity} transition-opacity mb-4`}>
+                            <div className={`text-xl md:text-2xl font-black ${color} tracking-widest drop-shadow-[0_0_10px_rgba(0,0,0,0.8)] stroke-black flex items-center gap-2`}>
+                                {label} <span className="text-white text-sm bg-white/20 px-1.5 rounded">LVL {lvl}</span>
                             </div>
                             <div className="text-xs md:text-sm font-bold text-white/90 drop-shadow-md">
-                                {sub}
+                                {sub} • {secondsLeft}s
                             </div>
                         </div>
                     );

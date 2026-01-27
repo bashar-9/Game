@@ -19,9 +19,57 @@ export const CONFIG = {
 };
 
 export const POWERUP_DURATIONS = {
-    double_stats: 720, // 12 seconds
+    double_stats: 900, // 15 seconds
     invulnerability: 900, // 15 seconds
     magnet: 900 // 15 seconds
+};
+
+export const BASE_POWERUP_DURATIONS = { ...POWERUP_DURATIONS };
+
+export const MAX_POWERUP_LEVEL = 10;
+export const KILLS_PER_POINT = 125;
+export const POWERUP_DURATION_PER_LEVEL = 180; // +3 seconds per level
+
+// Upgrade costs (scaled for 125 kills = 1 point)
+export const POWERUP_UPGRADE_COSTS = [
+    0,     // Level 1 (starting level, free)
+    100,   // Level 1→2 (12,500 kills)
+    250,   // Level 2→3
+    500,   // Level 3→4
+    1000,  // Level 4→5
+    2500,  // Level 5→6
+    5000,  // Level 6→7
+    10000, // Level 7→8
+    25000, // Level 8→9
+    50000, // Level 9→10
+    999999 // Level 10 is max
+];
+
+export const POWERUP_INFO = {
+    double_stats: {
+        id: 'double_stats',
+        name: 'Hyperdrive',
+        description: '3x Damage & Speed',
+        color: '#ff9500',
+        icon: '⭐',
+        emoji: '💥'
+    },
+    invulnerability: {
+        id: 'invulnerability',
+        name: 'Invulnerability',
+        description: 'Damage Immune',
+        color: '#ffee00',
+        icon: '🛡️',
+        emoji: '✨'
+    },
+    magnet: {
+        id: 'magnet',
+        name: 'Magnet',
+        description: 'Max Pickup Range',
+        color: '#00ddff',
+        icon: '🧲',
+        emoji: '🔵'
+    }
 };
 
 export const DIFFICULTY_SETTINGS = {
