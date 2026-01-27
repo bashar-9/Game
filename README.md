@@ -1,10 +1,10 @@
 <div align="center">
 
-# ⚔️ VOID SWARM ⚔️
+# ⚡ 0xSWARM ⚡
 
-### *Survive the Infinite. Evolve Beyond Limits.*
+### *Outrun the Leak. Optimize the Swarm.*
 
-![Version](https://img.shields.io/badge/version-1.2.0-00ffcc?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-0x010200-0bcfa8?style=for-the-badge)
 ![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=for-the-badge&logo=typescript&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
@@ -21,9 +21,9 @@
 
 ## 🌟 Overview
 
-**VOID SWARM** is a fast-paced survival game where you defend against endless waves of hostile entities. Built with modern web technologies, it delivers a smooth 60 FPS experience on both desktop and mobile devices.
+**0xSWARM** is a fast-paced survival game where you defend against endless waves of hostile entities. Built with modern web technologies, it delivers a smooth 60 FPS experience on both desktop and mobile devices.
 
-> *"How long can you survive?"*
+> *"EXECUTE: SURVIVAL_LOOP // DUMP_THE_VOID"*
 
 - 🔥 **Infinite Scaling** — Difficulty ramps forever. No safety nets.
 - 🎲 **Roguelike Elements** — Each run is unique with randomized upgrade choices
@@ -40,41 +40,41 @@
 | **Auto-Fire** | Continuous projectile stream towards nearest threat |
 | **Critical Hits** | Up to 100% crit chance with massive damage multipliers |
 | **Pierce** | Bullets pass through multiple enemies |
-| **Repulsion Field** | AOE damage aura that pushes and burns enemies |
+| **Radius Rejection** | AOE damage aura that pushes and burns enemies |
 
-### 📈 Upgrade Paths (10+ Upgrades)
-| Upgrade | Effect | Evolution |
-|---------|--------|-----------|
-| Split-Fire Mod | +1 Projectile | **Bullet Storm** (+2 Projectiles) |
-| Hyper-Loader | +30% Attack Speed | **Minigun Mech** (+60% Attack Speed) |
-| Plasma Core | +25% Damage | **Fusion Reactor** (+50% Damage) |
-| Ionic Thrusters | +15% Move Speed | **Warp Drive** (+40% Speed, +50 HP) |
-| Tungsten Rounds | +1 Pierce | **Spectral Shells** (+3 Pierce, +Velocity) |
-| Titan Plating | +150 Max HP | **Behemoth Hull** (+75 HP, 50% Heal) |
-| Nano Repair | +5 HP/sec | **Living Metal** (+5 HP/sec) |
-| High Caliber | +2 Bullet Size | **Graviton Rounds** (+2 Size) |
-| Repulsion Field | +Range/Force/Burn | **Supernova** (Massive Radius) |
-| Targeting CPU | +25% Crit Chance | — |
-| Gauss Coil | +25% Crit Damage | **Railgun** (+10% Crit) |
+### 📈 Upgrade Paths (Code Modules)
+| Module | Effect | Evolution |
+|--------|--------|-----------| 
+| FORK_PROCESS | +1 Thread | **PARALLEL_EXEC** (+2 Threads) |
+| I/O_ACCELERATOR | +30% I/O Speed | **BURST_MODE** (+60% Throughput) |
+| VOLTAGE_SPIKE | +25% Voltage | **POWER_SURGE** (+50% Voltage) |
+| BUS_VELOCITY | +15% Bus Speed | **HYPERTHREADING** (+40% Speed, +50 HP) |
+| POINTER_PIERCERS | +1 Depth | **NULL_TRAVERSAL** (+3 Pierce, +Velocity) |
+| ENCAP_SHIELDING | +150 Buffer | **SANDBOXED_CORE** (+75 HP, 50% Heal) |
+| SECTOR_REBUILD | +5 Repair/sec | **DEFRAG_DAEMON** (+5 Repair/sec) |
+| BUFFER_EXPANSION | +2 Bytes | **HEAP_OVERFLOW** (+2 Size) |
+| RADIUS_REJECTION | +Range/Force/Burn | **KERNEL_PANIC_WAVE** (Massive Radius) |
+| HEURISTIC_LOGIC | +25% Precision | — |
+| BITWISE_BURST | +25% Burst | **STACK_SMASH** (+10% Crit) |
 
-### ⚡ Power-Up System
-Collect rare power-ups from defeated enemies:
+### ⚡ Exploit System
+Collect rare exploits from terminated processes:
 
-| Power-Up | Effect | Base Duration |
-|----------|--------|---------------|
-| 🌟 **Hyperdrive** | 3x Damage & Attack Speed | 15 seconds |
-| 🛡️ **Invulnerability** | Complete damage immunity | 15 seconds |
-| 🧲 **Magnet** | 5x Pickup range | 15 seconds |
+| Exploit | Effect | Base Duration |
+|---------|--------|---------------|
+| ⚡ **OVERCLOCK** | 3x Damage & Attack Speed | 15 seconds |
+| 🔑 **PRIVILEGE_ESC** | Complete damage immunity | 15 seconds |
+| 📡 **DATA_SIPHON** | 5x Pickup range | 15 seconds |
 
-### 🍀 Permanent Upgrades
-Spend lifetime kill points to permanently enhance power-ups:
+### 🎲 Permanent Upgrades
+Spend lifetime deletion points to permanently enhance exploits:
 
 | Upgrade | Effect per Level | Max Bonus |
 |---------|------------------|-----------|
-| Hyperdrive Duration | +3 seconds | +27 seconds |
-| Invulnerability Duration | +3 seconds | +27 seconds |
-| Magnet Duration | +3 seconds | +27 seconds |
-| **Lucky Star** | +10% Drop Rate | +90% Drop Rate |
+| OVERCLOCK Duration | +3 seconds | +27 seconds |
+| PRIVILEGE_ESC Duration | +3 seconds | +27 seconds |
+| DATA_SIPHON Duration | +3 seconds | +27 seconds |
+| **RNG_EXPLOIT** | +10% Drop Rate | +90% Drop Rate |
 
 ---
 
@@ -83,9 +83,9 @@ Spend lifetime kill points to permanently enhance power-ups:
 ### Difficulty Modes
 | Mode | Enemy HP | Enemy Damage | Spawn Rate |
 |------|----------|--------------|------------|
-| 🟢 **Easy** | 1.0x | 1.0x | 1.0x |
-| 🟡 **Medium** | 2.2x | 1.7x | 1.5x |
-| 🔴 **Hard** | 3.5x | 2.5x | 2.0x |
+| 🟢 **SANDBOX** | 1.0x | 1.0x | 1.0x |
+| 🟡 **PRODUCTION** | 2.2x | 1.7x | 1.5x |
+| 🔴 **KERNEL_PANIC** | 3.5x | 2.5x | 2.0x |
 
 ### Enemy Types
 | Type | Behavior | Threat Level |
@@ -108,7 +108,7 @@ Spend lifetime kill points to permanently enhance power-ups:
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  VOID SWARM - Technical Architecture               │
+│  0xSWARM - Technical Architecture                  │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
 │  ┌─────────────┐    ┌─────────────┐                │
@@ -166,7 +166,7 @@ Open **[http://localhost:3000](http://localhost:3000)** and start surviving!
 ## 📁 Project Structure
 
 ```
-void-swarm/
+0xswarm/
 ├── app/                    # Next.js App Router
 │   ├── page.tsx           # Main game page
 │   └── globals.css        # Global styles
@@ -216,9 +216,9 @@ BASE_STATS.player = {
 
 // Difficulty Multipliers
 DIFFICULTY_SETTINGS = {
-  easy:   { hpMult: 1.0, dmgMult: 1.0, spawnMult: 1.0 },
-  medium: { hpMult: 2.2, dmgMult: 1.7, spawnMult: 1.5 },
-  hard:   { hpMult: 3.5, dmgMult: 2.5, spawnMult: 2.0 }
+  easy:   { hpMult: 1.0, dmgMult: 1.0, spawnMult: 1.0 },  // SANDBOX
+  medium: { hpMult: 2.2, dmgMult: 1.7, spawnMult: 1.5 },  // PRODUCTION
+  hard:   { hpMult: 3.5, dmgMult: 2.5, spawnMult: 2.0 }   // KERNEL_PANIC
 }
 ```
 
@@ -230,9 +230,9 @@ DIFFICULTY_SETTINGS = {
 
 | Color | Hex | Usage |
 |:-----:|:---:|:------|
-| 🟢 | `#00ffcc` | Primary / Cyan / Easy Mode |
-| 🟡 | `#ffee00` | XP / Warnings / Medium Mode |
-| 🔴 | `#ff0055` | Danger / Enemies / Hard Mode |
+| 🟢 | `#00ffcc` | Primary / Cyan / SANDBOX Mode |
+| 🟡 | `#ffee00` | XP / Warnings / PRODUCTION Mode |
+| 🔴 | `#ff0055` | Danger / Enemies / KERNEL_PANIC Mode |
 | 🟣 | `#aa00ff` | Tank Enemies / Rare |
 | ⚫ | `#0a0a12` | Background |
 
@@ -244,7 +244,7 @@ DIFFICULTY_SETTINGS = {
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| **1.2.0** | Jan 2026 | Lucky Star drop rate upgrade, improved decay |
+| **0x010200** | Jan 2026 | 0xSWARM rebrand, cyber-glitch aesthetic |
 | **1.1.0** | Jan 2026 | Power-up upgrade screen, Hyperdrive rename |
 | **1.0.0** | Dec 2025 | Initial release |
 
@@ -260,6 +260,6 @@ MIT © 2025-2026
 
 **Built with 💜 and caffeine**
 
-*Survive. Evolve. Dominate.*
+*Outrun the Leak. Optimize the Swarm.*
 
 </div>

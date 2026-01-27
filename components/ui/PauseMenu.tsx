@@ -29,11 +29,11 @@ export default function PauseMenu({ onResume, onQuit }: PauseMenuProps) {
                     <div className="flex items-center justify-center gap-3">
                         <div className="w-3 h-3 bg-[#ffee00] rounded-full animate-pulse shadow-[0_0_10px_rgba(255,238,0,0.5)]" />
                         <h2 className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/70 tracking-wider">
-                            SYSTEM PAUSED
+                            PROCESS_HALTED
                         </h2>
                         <div className="w-3 h-3 bg-[#ffee00] rounded-full animate-pulse shadow-[0_0_10px_rgba(255,238,0,0.5)]" />
                     </div>
-                    <p className="text-white/40 text-xs mt-1 tracking-widest uppercase">Mission Status</p>
+                    <p className="text-white/40 text-xs mt-1 tracking-widest uppercase">System State</p>
                 </div>
 
                 {/* Stats Content */}

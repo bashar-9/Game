@@ -28,9 +28,9 @@ export default function StartScreen({ onStart, onTitleClick }: StartScreenProps)
     }, []);
 
     const difficulties = [
-        { id: 'easy', label: 'EASY', color: 'text-[#00ffcc]', borderColor: 'border-[#00ffcc]', bgColor: 'bg-[#00ffcc]', glowColor: 'rgba(0,255,204,0.3)', icon: Shield },
-        { id: 'medium', label: 'MEDIUM', color: 'text-[#ffee00]', borderColor: 'border-[#ffee00]', bgColor: 'bg-[#ffee00]', glowColor: 'rgba(255,238,0,0.3)', icon: Zap },
-        { id: 'hard', label: 'HARD', color: 'text-[#ff0055]', borderColor: 'border-[#ff0055]', bgColor: 'bg-[#ff0055]', glowColor: 'rgba(255,0,85,0.3)', icon: Skull },
+        { id: 'easy', label: 'SANDBOX', color: 'text-[#00ffcc]', borderColor: 'border-[#00ffcc]', bgColor: 'bg-[#00ffcc]', glowColor: 'rgba(0,255,204,0.3)', icon: Shield },
+        { id: 'medium', label: 'PRODUCTION', color: 'text-[#ffee00]', borderColor: 'border-[#ffee00]', bgColor: 'bg-[#ffee00]', glowColor: 'rgba(255,238,0,0.3)', icon: Zap },
+        { id: 'hard', label: 'KERNEL_PANIC', color: 'text-[#ff0055]', borderColor: 'border-[#ff0055]', bgColor: 'bg-[#ff0055]', glowColor: 'rgba(255,0,85,0.3)', icon: Skull },
     ];
 
     return (
@@ -51,10 +51,10 @@ export default function StartScreen({ onStart, onTitleClick }: StartScreenProps)
                     onClick={onTitleClick}
                     className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#00ffcc] via-white to-[#00ffcc] mb-2 tracking-tighter cursor-pointer select-none hover:opacity-80 transition-opacity"
                 >
-                    VOID SWARM
+                    0xSWARM
                 </h1>
                 <p className="text-white/40 text-sm md:text-base mb-8 md:mb-10 uppercase tracking-[0.3em] font-medium">
-                    System Compromised // Defense Required
+                    CRITICAL_ERROR // STACK_OVERFLOW_DETECTED
                 </p>
 
                 {/* Difficulty Selection */}
@@ -110,7 +110,7 @@ export default function StartScreen({ onStart, onTitleClick }: StartScreenProps)
                 >
                     <span className="flex items-center justify-center gap-3 text-white/80 group-hover:text-[#ffee00] transition-colors">
                         <ArrowUpCircle className="w-5 h-5" />
-                        POWER-UP UPGRADES
+                        FIRMWARE_MODS
                         {availablePoints > 0 && (
                             <span className="ml-2 px-2 py-0.5 rounded-full bg-[#ffee00] text-black text-xs font-black animate-pulse">
                                 {availablePoints} PTS
@@ -128,12 +128,12 @@ export default function StartScreen({ onStart, onTitleClick }: StartScreenProps)
                         transition-all duration-300"
                 >
                     <span className="relative z-10 text-black flex items-center justify-center gap-3">
-                        <span className="text-2xl">▶</span> INITIALIZE DEFENSE
+                        <span className="text-2xl">▶</span> EXECUTE_MAIN_LOOP
                     </span>
                 </button>
 
                 {/* Version */}
-                <p className="text-white/20 text-xs mt-6 font-mono">v1.2.0</p>
+                <p className="text-white/20 text-xs mt-6 font-mono">BUILD_ID: 0x010200</p>
             </div>
 
             {/* Upgrade Screen Overlay */}

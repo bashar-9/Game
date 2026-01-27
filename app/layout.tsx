@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "VOID SWARM",
-  description: "Advanced Browser Defense System",
+  title: "0xSWARM",
+  description: "EXECUTE: SURVIVAL_LOOP // DUMP_THE_VOID",
 };
 
 export const viewport = {

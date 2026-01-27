@@ -78,9 +78,9 @@ export default function UpgradeMenu({ onSelect, player }: UpgradeMenuProps) {
                 {/* Header */}
                 <div className="shrink-0 mb-4 md:mb-8 text-center">
                     <h2 className="text-2xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#00ffcc] via-white to-[#00ffcc] tracking-tighter">
-                        SYSTEM UPGRADE
+                        PATCH_DETECTED!
                     </h2>
-                    <p className="text-white/40 text-xs md:text-sm mt-1 tracking-widest uppercase">Select Enhancement Module</p>
+                    <p className="text-white/40 text-xs md:text-sm mt-1 tracking-widest uppercase">INJECT_CODE_MODULE</p>
                     <div className="flex justify-center items-center gap-4 mt-3">
                         <div className="text-white/70 text-sm font-mono bg-white/5 backdrop-blur-sm px-4 py-1.5 rounded-full border border-white/10 shadow-lg">
                             <span className="text-white/50">⚡</span> POINTS: <span className="text-[#ffee00] font-bold">{rerollPoints}</span>

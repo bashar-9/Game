@@ -114,17 +114,17 @@ export default function HUD() {
 
                     switch (type) {
                         case 'double_stats':
-                            label = "DOUBLE STATS";
+                            label = "OVERCLOCK";
                             sub = "3x Damage & Speed";
                             color = "text-[#ff0055]";
                             break;
                         case 'invulnerability':
-                            label = "INVULNERABLE";
+                            label = "PRIVILEGE_ESC";
                             sub = "Damage Immune";
                             color = "text-[#ffee00]";
                             break;
                         case 'magnet':
-                            label = "MAGNET";
+                            label = "DATA_SIPHON";
                             sub = "Max Range";
                             color = "text-blue-400";
                             break;
@@ -168,7 +168,7 @@ export default function HUD() {
                     <div className="w-8 h-8 rounded-full bg-[#ffee00] text-black flex items-center justify-center font-bold">
                         {level}
                     </div>
-                    <span>LEVEL</span>
+                    <span>VERSION</span>
                 </div>
             </div>
         </div>

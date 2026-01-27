@@ -36,16 +36,16 @@ export default function GameOverScreen({ onRestart }: GameOverScreenProps) {
                 {/* Header */}
                 <div className="mb-4 sm:mb-8">
                     <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#ff0055] via-[#ff3377] to-[#ff0055] mb-1 sm:mb-2 tracking-tighter">
-                        CRITICAL FAILURE
+                        SYSTEM_HALTED
                     </h2>
-                    <p className="text-white/40 text-[10px] sm:text-xs md:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em]">System Terminated</p>
+                    <p className="text-white/40 text-[10px] sm:text-xs md:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em]">CORE_DUMP_COMPLETE</p>
                 </div>
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-6">
                     <StatCard label="TIME" value={formatTime(time)} icon="⏱" />
-                    <StatCard label="LEVEL" value={level.toString()} icon="⚡" />
-                    <StatCard label="KILLS" value={killCount.toString()} icon="💀" />
+                    <StatCard label="VERSION" value={level.toString()} icon="⚡" />
+                    <StatCard label="DELETIONS" value={killCount.toString()} icon="💀" />
                     <StatCard label="DAMAGE" value={damage.toString()} icon="🔥" />
                 </div>
 
@@ -65,7 +65,7 @@ export default function GameOverScreen({ onRestart }: GameOverScreenProps) {
                         className="flex-[1.5] py-4 bg-[#00ffcc] hover:bg-[#00ffd5] text-black rounded-xl font-black text-base sm:text-lg uppercase tracking-wider hover:shadow-[0_0_30px_rgba(0,255,204,0.4)] transition-all duration-300 flex items-center justify-center gap-2"
                     >
                         <RotateCw className="w-5 h-5" />
-                        RETRY
+                        REBOOT_SYSTEM
                     </button>
                 </div>
 
