@@ -133,7 +133,7 @@ export default function StartScreen({ onStart, onTitleClick }: StartScreenProps)
                 </button>
 
                 {/* Version */}
-                <p className="text-white/20 text-xs mt-6 font-mono">v1.1.0</p>
+                <p className="text-white/20 text-xs mt-6 font-mono">v1.2.0</p>
             </div>
 
             {/* Upgrade Screen Overlay */}

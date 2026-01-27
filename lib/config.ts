@@ -21,7 +21,8 @@ export const CONFIG = {
 export const POWERUP_DURATIONS = {
     double_stats: 900, // 15 seconds
     invulnerability: 900, // 15 seconds
-    magnet: 900 // 15 seconds
+    magnet: 900, // 15 seconds
+    drop_rate: 0 // No duration - passive upgrade
 };
 
 export const BASE_POWERUP_DURATIONS = { ...POWERUP_DURATIONS };
@@ -69,6 +70,14 @@ export const POWERUP_INFO = {
         color: '#00ddff',
         icon: '🧲',
         emoji: '🔵'
+    },
+    drop_rate: {
+        id: 'drop_rate',
+        name: 'Lucky Star',
+        description: '+10% Drop Rate / Lvl',
+        color: '#ff55ff',
+        icon: '🍀',
+        emoji: '⭐'
     }
 };
 

@@ -2,6 +2,8 @@
 
 A high-intensity browser-based survival shooter built with **Next.js 14**, **TypeScript**, and **HTML5 Canvas**.
 
+![Version](https://img.shields.io/badge/version-1.2.0-blue)
+
 ## 🎮 About
 
 Defend against endless waves of viral entities. Collect XP, upgrade your systems, and survive as long as possible. Features procedural difficulty scaling, 10+ upgrades with evolution paths, and a premium cyberpunk UI.
@@ -10,6 +12,8 @@ Defend against endless waves of viral entities. Collect XP, upgrade your systems
 
 - **Survival Gameplay** - Endless waves with dynamic difficulty scaling
 - **Upgrade System** - 10+ unique upgrades with evolution milestones
+- **Power-Up System** - Collect Hyperdrive, Invulnerability, and Magnet power-ups
+- **Permanent Upgrades** - 4 upgradeable power-up stats including Lucky Star (drop rate)
 - **3 Difficulty Modes** - Easy, Medium, Hard
 - **Responsive Design** - Desktop & mobile optimized
 - **Touch Controls** - Virtual joystick for mobile devices

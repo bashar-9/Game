@@ -330,11 +330,12 @@ export class Engine {
                 useGameStore.getState().addRerollPoints(1);
 
                 // POWERUP DROP LOGIC
-                // Formula: BaseRate * (DecayFactor / (DecayFactor + Kills))
-                // Rate = 0.5% * (500 / (500 + Kills))
+                // Formula: BaseRate * (DecayFactor / (DecayFactor + Kills)) * DropRateMultiplier
+                // Rate = 0.5% * (750 / (750 + Kills)) * multiplier
                 const baseRate = 0.005;
-                const decayFactor = 500;
-                const dropRate = baseRate * (decayFactor / (decayFactor + currentKills));
+                const decayFactor = 750;
+                const dropRateMultiplier = usePowerUpProgressionStore.getState().getDropRateMultiplier();
+                const dropRate = baseRate * (decayFactor / (decayFactor + currentKills)) * dropRateMultiplier;
 
                 if (Math.random() < dropRate) {
                     const powerupTypes: ('double_stats' | 'invulnerability' | 'magnet')[] = ['double_stats', 'invulnerability', 'magnet'];

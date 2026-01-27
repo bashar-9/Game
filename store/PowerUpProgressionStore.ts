@@ -8,7 +8,7 @@ import {
     POWERUP_UPGRADE_COSTS
 } from '@/lib/config';
 
-export type PowerupType = 'double_stats' | 'invulnerability' | 'magnet';
+export type PowerupType = 'double_stats' | 'invulnerability' | 'magnet' | 'drop_rate';
 
 interface PowerUpProgressionState {
     totalLifetimeKills: number;
@@ -21,6 +21,7 @@ interface PowerUpProgressionState {
     getAvailablePoints: () => number;
     getPowerUpCost: (type: PowerupType) => number;
     getPowerUpDuration: (type: PowerupType) => number;
+    getDropRateMultiplier: () => number;
     resetProgress: () => void;
 }
 
@@ -32,7 +33,8 @@ export const usePowerUpProgressionStore = create<PowerUpProgressionState>()(
             powerUpLevels: {
                 double_stats: 1,
                 invulnerability: 1,
-                magnet: 1
+                magnet: 1,
+                drop_rate: 1
             },
 
             addKills: (amount) => set((state) => ({
@@ -75,8 +77,16 @@ export const usePowerUpProgressionStore = create<PowerUpProgressionState>()(
                 const state = get();
                 const level = state.powerUpLevels[type];
                 const base = BASE_POWERUP_DURATIONS[type];
+                if (!base) return 0; // drop_rate has no duration
                 const bonus = (level - 1) * POWERUP_DURATION_PER_LEVEL;
                 return base + bonus;
+            },
+
+            getDropRateMultiplier: () => {
+                const state = get();
+                const level = state.powerUpLevels['drop_rate'];
+                // +10% per level, so level 1 = 1.0x, level 2 = 1.1x, level 10 = 1.9x
+                return 1 + (level - 1) * 0.10;
             },
 
             resetProgress: () => set({
@@ -85,13 +95,27 @@ export const usePowerUpProgressionStore = create<PowerUpProgressionState>()(
                 powerUpLevels: {
                     double_stats: 1,
                     invulnerability: 1,
-                    magnet: 1
+                    magnet: 1,
+                    drop_rate: 1
                 }
             })
         }),
         {
             name: 'void_swarm_progression', // unique name for localStorage key
             storage: createJSONStorage(() => localStorage),
+            version: 2, // Bump version to trigger migration
+            migrate: (persistedState: any, version: number) => {
+                if (version < 2) {
+                    // Add drop_rate if missing from old saves
+                    if (!persistedState.powerUpLevels?.drop_rate) {
+                        persistedState.powerUpLevels = {
+                            ...persistedState.powerUpLevels,
+                            drop_rate: 1
+                        };
+                    }
+                }
+                return persistedState;
+            }
         }
     )
 );

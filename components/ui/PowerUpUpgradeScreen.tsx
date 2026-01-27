@@ -87,8 +87,12 @@ export default function PowerUpUpgradeScreen({ onClose }: PowerUpUpgradeScreenPr
                         const isMaxed = level >= MAX_POWERUP_LEVEL;
                         const canAfford = !isMaxed && points >= cost;
 
-                        const currentDuration = Math.round((BASE_POWERUP_DURATIONS[key] + (level - 1) * POWERUP_DURATION_PER_LEVEL) / 60);
-                        const nextDuration = Math.round((BASE_POWERUP_DURATIONS[key] + (level) * POWERUP_DURATION_PER_LEVEL) / 60);
+                        // For drop_rate, show percentage instead of duration
+                        const isDropRate = key === 'drop_rate';
+                        const currentDuration = isDropRate ? 0 : Math.round((BASE_POWERUP_DURATIONS[key] + (level - 1) * POWERUP_DURATION_PER_LEVEL) / 60);
+                        const nextDuration = isDropRate ? 0 : Math.round((BASE_POWERUP_DURATIONS[key] + (level) * POWERUP_DURATION_PER_LEVEL) / 60);
+                        const currentDropBonus = (level - 1) * 10; // +10% per level above 1
+                        const nextDropBonus = level * 10;
 
                         return (
                             <div
@@ -155,17 +159,30 @@ export default function PowerUpUpgradeScreen({ onClose }: PowerUpUpgradeScreenPr
                                         </div>
                                     </div>
 
-                                    {/* Duration Stats */}
-                                    <div className="flex items-center gap-1.5 text-xs lg:text-sm">
-                                        <span className="text-white/50">Duration:</span>
-                                        <span className="text-white font-mono font-bold">{currentDuration}s</span>
-                                        {!isMaxed && (
-                                            <>
-                                                <span className="text-white/30">→</span>
-                                                <span className="text-[#00ffcc] font-mono font-bold">{nextDuration}s</span>
-                                            </>
-                                        )}
-                                    </div>
+                                    {/* Duration Stats OR Drop Rate Stats */}
+                                    {isDropRate ? (
+                                        <div className="flex items-center gap-1.5 text-xs lg:text-sm">
+                                            <span className="text-white/50">Bonus:</span>
+                                            <span className="text-white font-mono font-bold">+{currentDropBonus}%</span>
+                                            {!isMaxed && (
+                                                <>
+                                                    <span className="text-white/30">→</span>
+                                                    <span className="text-[#00ffcc] font-mono font-bold">+{nextDropBonus}%</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-1.5 text-xs lg:text-sm">
+                                            <span className="text-white/50">Duration:</span>
+                                            <span className="text-white font-mono font-bold">{currentDuration}s</span>
+                                            {!isMaxed && (
+                                                <>
+                                                    <span className="text-white/30">→</span>
+                                                    <span className="text-[#00ffcc] font-mono font-bold">{nextDuration}s</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
 
                                     {/* Upgrade Progress Bar */}
                                     <div className="w-full mt-1">
@@ -207,29 +224,7 @@ export default function PowerUpUpgradeScreen({ onClose }: PowerUpUpgradeScreenPr
                         );
                     })}
 
-                    {/* 4th Item - Coming Soon Placeholder */}
-                    <div
-                        className="
-                            relative overflow-hidden
-                            flex flex-col items-center justify-center text-center gap-2
-                            p-2 sm:p-3 lg:p-4 w-full h-full
-                            bg-gradient-to-br from-white/[0.02] to-white/[0.01] border border-dashed border-white/10 rounded-xl
-                            opacity-50
-                        "
-                        style={{ animation: 'slideIn 0.3s ease-out 0.15s both' }}
-                    >
-                        <div className="text-3xl sm:text-4xl lg:text-5xl opacity-30">
-                            🔒
-                        </div>
-                        <div className="flex flex-col items-center gap-1">
-                            <h3 className="text-[11px] sm:text-sm lg:text-base font-bold text-white/30">
-                                COMING SOON
-                            </h3>
-                            <p className="text-[9px] sm:text-[10px] text-white/20">
-                                New power-up
-                            </p>
-                        </div>
-                    </div>
+
                 </div>
 
                 {/* Info Banner */}
