@@ -13,7 +13,7 @@
 
 **A high-octane browser survival shooter with roguelike progression, infinite scaling, and a premium cyberpunk aesthetic.**
 
-[🎮 Play Now](#-quick-start) • [📖 Features](#-features) • [🎯 Gameplay](#-gameplay) • [⚙️ Configuration](#%EF%B8%8F-configuration)
+[🎮 Play Now](swarm.basharramadan.com) • [📖 Features](#-features) • [🎯 Gameplay](#-gameplay) • [⚙️ Configuration](#%EF%B8%8F-configuration)
 
 </div>
 
