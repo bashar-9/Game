@@ -56,6 +56,7 @@ function CircularProgress({
 function PowerupSlot({
     type,
     duration,
+    maxDuration,
     isActive,
     isMobile
 }: {
