@@ -61,8 +61,8 @@ export class Engine {
                 store.setDamage(damage);
                 store.setDamage(damage);
             },
-            onUpdateActivePowerups: (active) => {
-                useGameStore.getState().setActivePowerups(active);
+            onUpdateActivePowerups: (active, maxDurations) => {
+                useGameStore.getState().setActivePowerups(active, maxDurations);
             },
             onLevelUp: () => {
                 this.pauseGame();
@@ -88,7 +88,7 @@ export class Engine {
                 for (let i = 1; i < devConfig.level; i++) {
                     // Manually scale XP/HP without triggering UI level up
                     this.player.level++;
-                    this.player.xpToNext = Math.floor(this.player.xpToNext * 1.15);
+                    this.player.xpToNext = Math.floor(this.player.xpToNext * 1.15) + 25;
                     this.player.hp = Math.min(this.player.hp + (this.player.maxHp * 0.3), this.player.maxHp);
                 }
                 console.log(`Final Player Level: ${this.player.level}`);

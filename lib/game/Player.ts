@@ -7,7 +7,7 @@ import { createNeonSprite, CACHED_SPRITES } from './AssetCache';
 
 export interface PlayerCallbacks {
     onUpdateStats: (hp: number, maxHp: number, xp: number, xpToNext: number, level: number, damage: number) => void;
-    onUpdateActivePowerups: (active: Record<string, number>) => void;
+    onUpdateActivePowerups: (active: Record<string, number>, maxDurations: Record<string, number>) => void;
     onLevelUp: () => void;
     onGameOver: () => void;
     onCreateParticles: (x: number, y: number, count: number, color: string) => void;
@@ -49,6 +49,11 @@ export class Player {
         'double_stats': 0,
         'invulnerability': 0,
         'magnet': 0
+    };
+    activeMaxDurations: Record<PowerupType, number> = {
+        'double_stats': 900,
+        'invulnerability': 900,
+        'magnet': 900
     };
 
     rotation: number;
@@ -200,10 +205,10 @@ export class Player {
         if (statsChanged) {
             this.recalculateStats();
             // Sync immediately on expiry to hide UI
-            this.callbacks.onUpdateActivePowerups({ ...this.powerups });
+            this.callbacks.onUpdateActivePowerups({ ...this.powerups }, { ...this.activeMaxDurations });
         } else if (hasActivePowerups && frameCount % 30 === 0) {
             // Sync every ~0.5s to update durations for blinking effect
-            this.callbacks.onUpdateActivePowerups({ ...this.powerups });
+            this.callbacks.onUpdateActivePowerups({ ...this.powerups }, { ...this.activeMaxDurations });
         }
     }
 
@@ -313,6 +318,7 @@ export class Player {
 
     applyPowerup(type: PowerupType, durationFrames: number) {
         this.powerups[type] = durationFrames;
+        this.activeMaxDurations[type] = durationFrames;
         this.recalculateStats();
 
         // Helper: Restore full HP on any powerup? Or just invulnerability?
@@ -324,7 +330,7 @@ export class Player {
 
     syncStats() {
         this.callbacks.onUpdateStats(this.hp, this.maxHp, this.xp, this.xpToNext, this.level, this.damage);
-        this.callbacks.onUpdateActivePowerups({ ...this.powerups });
+        this.callbacks.onUpdateActivePowerups({ ...this.powerups }, { ...this.activeMaxDurations });
     }
 
     hasInvulnerabilityShield(): boolean {

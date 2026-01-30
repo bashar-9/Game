@@ -29,7 +29,8 @@ interface GameState {
     setDamage: (damage: number) => void;
 
     activePowerups: Record<string, number>;
-    setActivePowerups: (active: Record<string, number>) => void;
+    activePowerupMaxDurations: Record<string, number>;
+    setActivePowerups: (active: Record<string, number>, maxDurations?: Record<string, number>) => void;
 
     addRerollPoints: (amount: number) => void;
     useReroll: () => boolean; // Returns true if successful
@@ -64,7 +65,7 @@ export const useGameStore = create<GameState>((set) => ({
     setUpgradeMenu: (isUpgradeMenuOpen) => set({ isUpgradeMenuOpen }),
     setDamage: (damage) => set({ damage }),
 
-    addRerollPoints: (amount) => set((state) => ({ rerollPoints: state.rerollPoints + amount })),
+    addRerollPoints: (amount: number) => set((state) => ({ rerollPoints: state.rerollPoints + amount })),
     useReroll: () => {
         const state = useGameStore.getState();
         // 1. Try free reroll
@@ -91,7 +92,11 @@ export const useGameStore = create<GameState>((set) => ({
     },
 
     activePowerups: {},
-    setActivePowerups: (active) => set({ activePowerups: active }),
+    activePowerupMaxDurations: {},
+    setActivePowerups: (active, maxDurations) => set({
+        activePowerups: active,
+        ...(maxDurations ? { activePowerupMaxDurations: maxDurations } : {})
+    }),
 
     reset: () => set({
         hp: 300, maxHp: 300, xp: 0, xpToNext: 20, level: 1, damage: 25,

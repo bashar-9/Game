@@ -61,14 +61,15 @@ function PowerupSlot({
 }: {
     type: string;
     duration: number;
+    maxDuration: number;
     isActive: boolean;
     isMobile: boolean;
 }) {
     const info = POWERUP_INFO[type as keyof typeof POWERUP_INFO];
     if (!info) return null;
 
-    const maxDuration = POWERUP_DURATIONS[type as keyof typeof POWERUP_DURATIONS] || 900;
-    const progress = isActive ? Math.max(0, duration / maxDuration) : 0;
+    // Use dynamic maxDuration if available, otherwise fallback to config default
+    const progress = isActive ? Math.min(1, Math.max(0, duration / maxDuration)) : 0;
     const secondsLeft = Math.ceil(duration / 60);
 
     // Blinking when low
@@ -162,6 +163,7 @@ function PowerupSlot({
 
 export default function PowerupsHUD() {
     const activePowerups = useGameStore(state => state.activePowerups || {});
+    const activeMaxDurations = useGameStore(state => state.activePowerupMaxDurations || {});
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
@@ -195,6 +197,7 @@ export default function PowerupsHUD() {
                             key={type}
                             type={type}
                             duration={duration}
+                            maxDuration={activeMaxDurations[type] || POWERUP_DURATIONS[type] || 900}
                             isActive={true}
                             isMobile={isMobile}
                         />

@@ -112,9 +112,13 @@ export class Enemy {
         }
 
         const d = Math.hypot(player.x - this.x, player.y - this.y);
-        if (d < player.radius + this.radius) {
+        const shieldActive = player.hasInvulnerabilityShield && player.hasInvulnerabilityShield();
+        // Shield radius is 4.5x player radius (matching Player.ts visual) - otherwise normal hull radius
+        const effectivePlayerRadius = shieldActive ? (player.radius * 4.5) : player.radius;
+
+        if (d < effectivePlayerRadius + this.radius) {
             // Check if player has invulnerability shield active
-            if (player.hasInvulnerabilityShield && player.hasInvulnerabilityShield()) {
+            if (shieldActive) {
                 // Shield kills enemy on contact
                 this.hp = 0;
                 this.killedByShield = true;
