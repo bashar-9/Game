@@ -80,12 +80,34 @@ export class Enemy {
         showDamage(this.x, this.y, amount, isCrit);
     }
 
-    update(player: IPlayer, enemies: Enemy[], delta: number = 1) {
+    update(player: IPlayer, enemies: Enemy[], delta: number = 1, walls: { x: number, y: number, w: number, h: number }[] = []) {
         const angle = Math.atan2(player.y - this.y, player.x - this.x);
         this.rotation = angle; // Face player
 
         this.x += (Math.cos(angle) * this.speed + this.pushX) * delta;
         this.y += (Math.sin(angle) * this.speed + this.pushY) * delta;
+
+        // Wall collision resolution
+        if (walls.length > 0) {
+            for (const wall of walls) {
+                const closestX = Math.max(wall.x, Math.min(this.x, wall.x + wall.w));
+                const closestY = Math.max(wall.y, Math.min(this.y, wall.y + wall.h));
+                const dx = this.x - closestX;
+                const dy = this.y - closestY;
+                const distSq = dx * dx + dy * dy;
+
+                if (distSq < this.radius * this.radius) {
+                    const dist = Math.sqrt(distSq);
+                    if (dist > 0) {
+                        const depth = this.radius - dist;
+                        this.x += (dx / dist) * depth;
+                        this.y += (dy / dist) * depth;
+                    } else {
+                        this.x += this.radius;
+                    }
+                }
+            }
+        }
 
         // Push decay with delta (exponential decay)
         const decayFactor = Math.pow(0.8, delta);

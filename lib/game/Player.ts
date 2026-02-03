@@ -59,6 +59,11 @@ export class Player {
 
     rotation: number;
 
+    // Hazard effect properties
+    slowMultiplier: number = 1.0;
+    teleportCooldown: number = 0;
+    teleportInvincibility: number = 0;
+
     static CACHE_SIZE = 80; // Larger for player
     static CACHE_HALF = 40;
 
@@ -123,6 +128,11 @@ export class Player {
         this.pickupRange = BASE_STATS.player.pickupRange * magnetMult;
     }
 
+    // Hazard effect methods
+    setSlowMultiplier(multiplier: number) {
+        this.slowMultiplier = multiplier;
+    }
+
     // ... (Keep existing update method)
 
     levelUp() {
@@ -135,7 +145,7 @@ export class Player {
         this.callbacks.onLevelUp();
     }
 
-    update(input: InputState, enemies: Enemy[], spawnBullet: (x: number, y: number, vx: number, vy: number, damage: number, pierce: number, size: number, isCrit: boolean) => void, frameCount: number, canvasWidth: number, canvasHeight: number, delta: number = 1) {
+    update(input: InputState, enemies: Enemy[], spawnBullet: (x: number, y: number, vx: number, vy: number, damage: number, pierce: number, size: number, isCrit: boolean) => void, frameCount: number, worldWidth: number, worldHeight: number, delta: number = 1, walls: { x: number, y: number, w: number, h: number }[] = []) {
         // Regen - use accumulator for frame-rate independence
         if (this.regen > 0 && this.hp < this.maxHp) {
             // Regen is HP per second, apply delta-scaled amount
@@ -145,6 +155,10 @@ export class Player {
             if (frameCount % 30 === 0) this.syncStats();
         }
 
+        // Decay teleport cooldowns
+        if (this.teleportCooldown > 0) this.teleportCooldown -= delta;
+        if (this.teleportInvincibility > 0) this.teleportInvincibility -= delta;
+
         // Movement
         let mx = input.moveX;
         let my = input.moveY;
@@ -152,11 +166,21 @@ export class Player {
         // Simplify magnitude check since InputManager already normalizes
         const mag = Math.sqrt(mx * mx + my * my);
         if (mag > 0) {
-            // No divisor needed as input is normalized
-            this.x += mx * this.speed * delta;
-            this.y += my * this.speed * delta;
-            this.x = Math.max(this.radius, Math.min(canvasWidth - this.radius, this.x));
-            this.y = Math.max(this.radius, Math.min(canvasHeight - this.radius, this.y));
+            // Apply slow multiplier from hazard zones
+            const effectiveSpeed = this.speed * this.slowMultiplier;
+            this.x += mx * effectiveSpeed * delta;
+            this.y += my * effectiveSpeed * delta;
+
+            // Clamp to world bounds
+            this.x = Math.max(this.radius, Math.min(worldWidth - this.radius, this.x));
+            this.y = Math.max(this.radius, Math.min(worldHeight - this.radius, this.y));
+
+            // Wall collision resolution
+            if (walls.length > 0) {
+                const resolved = this.resolveWallCollisions(this.x, this.y, this.radius, walls);
+                this.x = resolved.x;
+                this.y = resolved.y;
+            }
 
             // Update Rotation to face movement
             // Smooth rotation could be added here, but instant is responsive
@@ -166,7 +190,7 @@ export class Player {
         // Attack
         if (this.attackCooldown > 0) this.attackCooldown -= delta;
         else {
-            const target = this.findNearestEnemy(enemies, canvasWidth, canvasHeight);
+            const target = this.findNearestEnemy(enemies, worldWidth, worldHeight);
             if (target) {
                 // Optional: Override rotation to face target when shooting
                 // this.rotation = Math.atan2(target.y - this.y, target.x - this.x); 
@@ -258,6 +282,36 @@ export class Player {
         return nearest;
     }
 
+    // Wall collision resolution helper
+    resolveWallCollisions(cx: number, cy: number, radius: number, walls: { x: number, y: number, w: number, h: number }[]): { x: number; y: number } {
+        let x = cx;
+        let y = cy;
+
+        for (const wall of walls) {
+            // Find closest point on rectangle to circle center
+            const closestX = Math.max(wall.x, Math.min(x, wall.x + wall.w));
+            const closestY = Math.max(wall.y, Math.min(y, wall.y + wall.h));
+
+            const dx = x - closestX;
+            const dy = y - closestY;
+            const distSq = dx * dx + dy * dy;
+
+            if (distSq < radius * radius) {
+                const dist = Math.sqrt(distSq);
+                if (dist === 0) {
+                    // Circle center is inside rectangle - push out horizontally
+                    x += radius;
+                } else {
+                    const depth = radius - dist;
+                    x += (dx / dist) * depth;
+                    y += (dy / dist) * depth;
+                }
+            }
+        }
+
+        return { x, y };
+    }
+
     shoot(target: Enemy, spawnBullet: (x: number, y: number, vx: number, vy: number, damage: number, pierce: number, size: number, isCrit: boolean) => void) {
         const angle = Math.atan2(target.y - this.y, target.x - this.x);
 
@@ -300,12 +354,23 @@ export class Player {
     takeDamage(amount: number) {
         if (this.invincibilityTimer > 0) return;
         if (this.powerups['invulnerability'] > 0) return;
+        if (this.teleportInvincibility > 0) return; // Immunity after teleport
 
         this.hp -= amount;
         this.invincibilityTimer = 60; // 1s Immunity
         soundManager.play('damage', 'sfx', 0.4);
         this.callbacks.onCreateParticles(this.x, this.y, 5, CONFIG.COLORS.danger);
         this.syncStats();
+        this.syncStats();
+        if (this.hp <= 0) this.callbacks.onGameOver();
+    }
+
+    // Hazard damage - DOT that doesn't grant invincibility
+    takeHazardDamage(amount: number) {
+        if (this.powerups['invulnerability'] > 0) return;
+        if (this.teleportInvincibility > 0) return;
+
+        this.hp -= amount;
         this.syncStats();
         if (this.hp <= 0) this.callbacks.onGameOver();
     }
