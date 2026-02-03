@@ -17,7 +17,10 @@ export default function StartScreen({ onStart, onTitleClick }: StartScreenProps)
     const [showUpgradeScreen, setShowUpgradeScreen] = useState(false);
     const availablePoints = usePowerUpProgressionStore((state) => state.getAvailablePoints());
 
+    const [isMounted, setIsMounted] = useState(false);
+
     useEffect(() => {
+        setIsMounted(true);
         // Preload and play menu music
         soundManager.preload().then(() => {
             soundManager.playMenuBGM(0.6);
@@ -111,7 +114,7 @@ export default function StartScreen({ onStart, onTitleClick }: StartScreenProps)
                     <span className="flex items-center justify-center gap-3 text-white/80 group-hover:text-[#ffee00] transition-colors">
                         <ArrowUpCircle className="w-5 h-5" />
                         FIRMWARE_MODS
-                        {availablePoints > 0 && (
+                        {isMounted && availablePoints > 0 && (
                             <span className="ml-2 px-2 py-0.5 rounded-full bg-[#ffee00] text-black text-xs font-black animate-pulse">
                                 {availablePoints} PTS
                             </span>
@@ -133,7 +136,7 @@ export default function StartScreen({ onStart, onTitleClick }: StartScreenProps)
                 </button>
 
                 {/* Version */}
-                <p className="text-white/20 text-xs mt-6 font-mono">BUILD_ID: 0x010200</p>
+                <p className="text-white/20 text-xs mt-6 font-mono">BUILD_ID: 0x010311</p>
             </div>
 
             {/* Upgrade Screen Overlay */}

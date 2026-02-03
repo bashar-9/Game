@@ -174,7 +174,7 @@ export class Player {
         // Attack
         if (this.attackCooldown > 0) this.attackCooldown -= delta;
         else {
-            const target = this.findNearestEnemy(enemies);
+            const target = this.findNearestEnemy(enemies, canvasWidth, canvasHeight);
             if (target) {
                 // If shooting, face target?
                 // Optional: Override rotation to face target when shooting
@@ -251,10 +251,13 @@ export class Player {
         }
     }
 
-    findNearestEnemy(enemies: Enemy[]) {
+    findNearestEnemy(enemies: Enemy[], canvasWidth: number, canvasHeight: number) {
         let nearest = null;
         let minDist = Infinity;
         for (const e of enemies) {
+            // Ignore enemies that are outside the visible canvas (spawn buffer)
+            if (e.x < 0 || e.x > canvasWidth || e.y < 0 || e.y > canvasHeight) continue;
+
             const d = Math.hypot(e.x - this.x, e.y - this.y);
             if (d < minDist && d < 650) {
                 minDist = d;
@@ -453,7 +456,7 @@ export class Player {
         (Object.keys(this.powerups) as PowerupType[]).forEach(key => {
             const timeLeft = this.powerups[key];
             if (timeLeft > 0) {
-                const maxTime = POWERUP_DURATIONS[key] || 1;
+                const maxTime = this.activeMaxDurations[key] || POWERUP_DURATIONS[key] || 1;
                 const pct = Math.max(0, timeLeft / maxTime);
 
                 const color = key === 'double_stats' ? '#ff0000' :
