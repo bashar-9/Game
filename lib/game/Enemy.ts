@@ -4,22 +4,22 @@ import { IPlayer } from './types';
 import { createNeonSprite, CACHED_SPRITES } from './AssetCache';
 
 export class Enemy {
-    x: number;
-    y: number;
-    type: 'basic' | 'tank' | 'swarm';
-    pushX: number;
-    pushY: number;
-    radius: number;
-    speed: number;
-    hp: number;
-    maxHp: number;
-    xpValue: number;
-    damage: number;
-    mass: number;
-    color: string;
-    killedByShield: boolean;
+    x!: number;
+    y!: number;
+    type!: 'basic' | 'tank' | 'swarm';
+    pushX!: number;
+    pushY!: number;
+    radius!: number;
+    speed!: number;
+    hp!: number;
+    maxHp!: number;
+    xpValue!: number;
+    damage!: number;
+    mass!: number;
+    color!: string;
+    killedByShield!: boolean;
 
-    rotation: number;
+    rotation!: number;
 
     // Static size config for caching
     // We add buffer for glow/shadow
@@ -27,6 +27,11 @@ export class Enemy {
     static CACHE_HALF = 32;
 
     constructor(type: 'basic' | 'tank' | 'swarm', canvasWidth: number, canvasHeight: number, playerLevel: number, diffMode: 'easy' | 'medium' | 'hard', diffLevel: number) {
+        this.getSprite(); // Preload sprite once
+        this.reset(type, canvasWidth, canvasHeight, playerLevel, diffMode, diffLevel);
+    }
+
+    reset(type: 'basic' | 'tank' | 'swarm', canvasWidth: number, canvasHeight: number, playerLevel: number, diffMode: 'easy' | 'medium' | 'hard', diffLevel: number) {
         // Spawn logic
         const edge = Math.floor(Math.random() * 4);
         const buffer = 50;
@@ -38,7 +43,7 @@ export class Enemy {
         this.type = type;
         this.pushX = 0;
         this.pushY = 0;
-        this.rotation = 0; // Init rotation
+        this.rotation = 0;
 
         const settings = DIFFICULTY_SETTINGS[diffMode];
         const levelMult = 1 + (playerLevel * 0.1);
@@ -56,13 +61,10 @@ export class Enemy {
         }
 
         this.radius = CONFIG.IS_MOBILE ? stats.radiusMobile : stats.radius;
-        // Speed variation
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const baseSpeed = (stats as any).speedBase || (stats as any).speed;
         this.speed = baseSpeed + (type === 'swarm' || type === 'basic' ? Math.random() * (type === 'swarm' ? 1.0 : 0.5) : 0);
 
-        // New Scaling: Milder (Additive per level) rather than Multiplicative
-        // Revised to start at 1.0 (diffLevel 1) so early game stats hold true
         const diffScale = 1 + (Math.max(0, diffLevel - 1) * 0.5);
         this.hp = stats.hpBase * diffScale * settings.hpMult * levelMult;
         this.xpValue = Math.floor(stats.xpValue * (1 + (diffLevel * 0.15)));
@@ -71,9 +73,6 @@ export class Enemy {
 
         this.maxHp = this.hp;
         this.killedByShield = false;
-
-        // Ensure we preload sprite if not exists
-        this.getSprite();
     }
 
     takeHit(amount: number, isCrit: boolean = false) {

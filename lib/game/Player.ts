@@ -2,6 +2,7 @@ import { BASE_STATS, DIFFICULTY_SETTINGS, CONFIG, POWERUP_DURATIONS } from '../c
 import { Bullet } from './Bullet';
 import { Enemy } from './Enemy';
 import { JoystickState } from './types';
+import { InputState } from './InputManager';
 import { soundManager } from './SoundManager';
 import { createNeonSprite, CACHED_SPRITES } from './AssetCache';
 
@@ -134,7 +135,7 @@ export class Player {
         this.callbacks.onLevelUp();
     }
 
-    update(keys: Record<string, boolean>, joystick: JoystickState, enemies: Enemy[], bullets: Bullet[], frameCount: number, canvasWidth: number, canvasHeight: number, delta: number = 1) {
+    update(input: InputState, enemies: Enemy[], spawnBullet: (x: number, y: number, vx: number, vy: number, damage: number, pierce: number, size: number, isCrit: boolean) => void, frameCount: number, canvasWidth: number, canvasHeight: number, delta: number = 1) {
         // Regen - use accumulator for frame-rate independence
         if (this.regen > 0 && this.hp < this.maxHp) {
             // Regen is HP per second, apply delta-scaled amount
@@ -145,22 +146,13 @@ export class Player {
         }
 
         // Movement
-        let mx = 0; let my = 0;
-        if (keys['w'] || keys['ArrowUp']) my -= 1;
-        if (keys['s'] || keys['ArrowDown']) my += 1;
-        if (keys['a'] || keys['ArrowLeft']) mx -= 1;
-        if (keys['d'] || keys['ArrowRight']) mx += 1;
+        let mx = input.moveX;
+        let my = input.moveY;
 
-        if (joystick.active) {
-            mx = joystick.dx;
-            my = joystick.dy;
-        }
-
+        // Simplify magnitude check since InputManager already normalizes
         const mag = Math.sqrt(mx * mx + my * my);
         if (mag > 0) {
-            const divisor = (mag > 1 || !joystick.active) ? mag : 1;
-            mx /= divisor;
-            my /= divisor;
+            // No divisor needed as input is normalized
             this.x += mx * this.speed * delta;
             this.y += my * this.speed * delta;
             this.x = Math.max(this.radius, Math.min(canvasWidth - this.radius, this.x));
@@ -176,10 +168,9 @@ export class Player {
         else {
             const target = this.findNearestEnemy(enemies, canvasWidth, canvasHeight);
             if (target) {
-                // If shooting, face target?
                 // Optional: Override rotation to face target when shooting
                 // this.rotation = Math.atan2(target.y - this.y, target.x - this.x); 
-                this.shoot(target, bullets);
+                this.shoot(target, spawnBullet);
                 this.attackCooldown = this.attackSpeed;
             }
         }
@@ -267,7 +258,7 @@ export class Player {
         return nearest;
     }
 
-    shoot(target: Enemy, bullets: Bullet[]) {
+    shoot(target: Enemy, spawnBullet: (x: number, y: number, vx: number, vy: number, damage: number, pierce: number, size: number, isCrit: boolean) => void) {
         const angle = Math.atan2(target.y - this.y, target.x - this.x);
 
         // Center-Anchored Spread Logic (Option 2)
@@ -294,7 +285,7 @@ export class Player {
             const isCrit = Math.random() < this.critChance;
             const finalDamage = isCrit ? Math.floor(this.damage * this.critMultiplier) : this.damage;
 
-            bullets.push(new Bullet(this.x, this.y, vx, vy, finalDamage, this.pierce, this.bulletSize, isCrit));
+            spawnBullet(this.x, this.y, vx, vy, finalDamage, this.pierce, this.bulletSize, isCrit);
         }
         // Lower volume for rapid fire, add pitch variance of 0.1
         soundManager.play('shoot', 'sfx', 0.15, false, 0.1);

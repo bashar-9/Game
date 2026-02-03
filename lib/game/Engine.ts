@@ -8,6 +8,8 @@ import { drawJoystick, getDifficulty } from '../utils';
 import { useGameStore } from '../../store/useGameStore';
 import { usePowerUpProgressionStore } from '../../store/PowerUpProgressionStore';
 import { JoystickState } from './types';
+import { InputManager } from './InputManager';
+import { ObjectPool } from './ObjectPool';
 import { soundManager } from './SoundManager';
 
 export class Engine {
@@ -22,15 +24,17 @@ export class Engine {
     pickups: Pickup[] = [];
     particles: Particle[] = [];
 
-    keys: Record<string, boolean> = {};
-    joystick: JoystickState = {
-        active: false, originX: 0, originY: 0, dx: 0, dy: 0, id: null
-    };
+    // Pools
+    bulletPool: ObjectPool<Bullet>;
+    particlePool: ObjectPool<Particle>;
+    enemyPool: ObjectPool<Enemy>;
+
+    inputManager: InputManager;
 
     animationId: number = 0;
     lastTime: number = 0;
     gameTime: number = 0;
-    gameTimeAccumulator: number = 0;
+    accumulator: number = 0;
     frames: number = 0;
 
     // Target FPS for delta calculations (game was tuned for 60 FPS)
@@ -47,8 +51,24 @@ export class Engine {
         resetUpgrades();
 
         this.canvas = canvas;
-        this.ctx = canvas.getContext('2d')!;
+        this.ctx = canvas.getContext('2d', { alpha: false })!; // Alpha false for performance
         this.diffMode = diffMode;
+
+        this.inputManager = new InputManager(canvas);
+
+        // Init Pools
+        this.bulletPool = new ObjectPool<Bullet>(
+            () => new Bullet(0, 0, 0, 0, 0, 0, 0, false),
+            (b) => { /* Reset handled by acquire/Player */ }
+        );
+        this.particlePool = new ObjectPool<Particle>(
+            () => new Particle(0, 0, '#fff'),
+            (p) => { /* Reset handled by acquire */ }
+        );
+        this.enemyPool = new ObjectPool<Enemy>(
+            () => new Enemy('basic', 0, 0, 1, 'easy', 1), // Dummy defaults
+            (e) => { /* Reset handled by acquire */ }
+        );
 
         // Initialize size logic
         this.resize();
@@ -58,7 +78,6 @@ export class Engine {
                 const store = useGameStore.getState();
                 store.setHp(hp, maxHp);
                 store.setXp(xp, xpToNext, level);
-                store.setDamage(damage);
                 store.setDamage(damage);
             },
             onUpdateActivePowerups: (active, maxDurations) => {
@@ -73,7 +92,11 @@ export class Engine {
                 this.endGame();
             },
             onCreateParticles: (x, y, count, color) => {
-                for (let i = 0; i < count; i++) this.particles.push(new Particle(x, y, color));
+                for (let i = 0; i < count; i++) {
+                    const p = this.particlePool.acquire();
+                    p.reset(x, y, color);
+                    this.particles.push(p);
+                }
             }
         });
 
@@ -154,59 +177,8 @@ export class Engine {
     }
 
     bindEvents() {
-        window.addEventListener('keydown', (e) => this.keys[e.key] = true);
-        window.addEventListener('keyup', (e) => this.keys[e.key] = false);
         window.addEventListener('resize', () => this.resize());
-
-        this.canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                const t = e.changedTouches[i];
-                // Increased activation zone to 75% to account for broad thumbs/small screens
-                // and ignore inputs clearly meant for the right side (action buttons if any, or just empty)
-                if (!this.joystick.active && t.clientX < window.innerWidth * 0.75) {
-                    this.joystick.active = true;
-                    this.joystick.id = t.identifier;
-                    this.joystick.originX = t.clientX;
-                    this.joystick.originY = t.clientY;
-                    this.joystick.dx = 0;
-                    this.joystick.dy = 0;
-                }
-            }
-        }, { passive: false });
-
-        this.canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                const t = e.changedTouches[i];
-                if (this.joystick.active && t.identifier === this.joystick.id) {
-                    const maxDist = 50;
-                    const diffX = t.clientX - this.joystick.originX;
-                    const diffY = t.clientY - this.joystick.originY;
-                    const dist = Math.sqrt(diffX * diffX + diffY * diffY);
-
-                    if (dist > maxDist) {
-                        this.joystick.dx = (diffX / dist);
-                        this.joystick.dy = (diffY / dist);
-                    } else {
-                        this.joystick.dx = diffX / maxDist;
-                        this.joystick.dy = diffY / maxDist;
-                    }
-                }
-            }
-        }, { passive: false });
-
-        this.canvas.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                if (e.changedTouches[i].identifier === this.joystick.id) {
-                    this.joystick.active = false;
-                    this.joystick.id = null;
-                    this.joystick.dx = 0;
-                    this.joystick.dy = 0;
-                }
-            }
-        });
+        // Input logic moved to InputManager
     }
 
     resize() {
@@ -245,26 +217,32 @@ export class Engine {
 
     loop = () => {
         if (!useGameStore.getState().isPaused && !useGameStore.getState().isGameOver) {
-            this.update();
+            const now = performance.now();
+            let deltaMs = now - this.lastTime;
+            // Cap delta to prevent spiral of death if tab backgrounded
+            if (deltaMs > 100) deltaMs = 100;
+
+            this.lastTime = now;
+            this.accumulator += deltaMs;
+
+            // Fixed Timestep Update
+            const stepMs = Engine.FRAME_TIME; // ~16.67ms
+            while (this.accumulator >= stepMs) {
+                this.update();
+                this.accumulator -= stepMs;
+            }
+
             this.draw();
         }
         this.animationId = requestAnimationFrame(this.loop);
     };
 
     update() {
-        const now = performance.now();
-        const deltaMs = now - this.lastTime;
-        this.lastTime = now;
+        // Delta is always 1.0 in fixed update (matches 60 FPS logic)
+        const delta = 1.0;
 
-        // Delta multiplier: 1.0 at 60 FPS, 0.5 at 120 FPS, 2.0 at 30 FPS
-        // Clamp to prevent physics issues on very slow frames
-        const delta = Math.min(deltaMs / Engine.FRAME_TIME, 3.0);
-
-        // Time tracking using accumulator for frame-rate independence
-        this.gameTimeAccumulator += deltaMs;
-        if (this.gameTimeAccumulator >= 1000) {
+        if (this.frames % 60 === 0 && this.frames > 0) {
             this.gameTime++;
-            this.gameTimeAccumulator -= 1000;
             useGameStore.getState().setTime(this.gameTime);
             this.difficulty = getDifficulty(this.gameTime);
         }
@@ -285,10 +263,25 @@ export class Engine {
             if (this.gameTime > 5) types.push('swarm');
             if (this.gameTime > 120) types.push('tank');
             const type = types[Math.floor(Math.random() * types.length)];
-            this.enemies.push(new Enemy(type, this.width, this.height, this.player.level, this.diffMode, this.difficulty));
+            const enemy = this.enemyPool.acquire();
+            enemy.reset(type, this.width, this.height, this.player.level, this.diffMode, this.difficulty);
+            this.enemies.push(enemy);
         }
 
-        this.player.update(this.keys, this.joystick, this.enemies, this.bullets, this.frames, this.width, this.height, delta);
+        const inputState = this.inputManager.getState();
+        this.player.update(
+            inputState,
+            this.enemies,
+            (x, y, vx, vy, damage, pierce, size, isCrit) => {
+                const b = this.bulletPool.acquire();
+                b.reset(x, y, vx, vy, damage, pierce, size, isCrit);
+                this.bullets.push(b);
+            },
+            this.frames,
+            this.width,
+            this.height,
+            delta
+        );
 
         for (let i = this.enemies.length - 1; i >= 0; i--) {
             const e = this.enemies[i];
@@ -314,11 +307,14 @@ export class Engine {
                 this.pickups.push(new Pickup(e.x, e.y, e.xpValue * multiplier, multiplier));
 
                 this.enemies.splice(i, 1);
+                this.enemyPool.release(e);
 
                 // Shield kill effect - yellow sparks burst
                 if (e.killedByShield) {
                     for (let j = 0; j < 8; j++) {
-                        this.particles.push(new Particle(e.x, e.y, '#ffff00'));
+                        const p = this.particlePool.acquire();
+                        p.reset(e.x, e.y, '#ffff00');
+                        this.particles.push(p);
                     }
                 }
 
@@ -350,6 +346,7 @@ export class Engine {
             b.update(this.enemies, this.particles, delta);
             if (b.life <= 0 || b.x < 0 || b.x > this.width || b.y < 0 || b.y > this.height) {
                 this.bullets.splice(i, 1);
+                this.bulletPool.release(b);
             }
         }
 
@@ -362,7 +359,10 @@ export class Engine {
         for (let i = this.particles.length - 1; i >= 0; i--) {
             const p = this.particles[i];
             p.update(delta);
-            if (p.life <= 0) this.particles.splice(i, 1);
+            if (p.life <= 0) {
+                this.particles.splice(i, 1);
+                this.particlePool.release(p);
+            }
         }
     }
 
@@ -400,7 +400,7 @@ export class Engine {
         this.bullets.forEach(b => b.draw(this.ctx));
         this.player.draw(this.ctx, this.frames);
 
-        drawJoystick(this.ctx, this.joystick);
+        drawJoystick(this.ctx, this.inputManager.joystick);
     }
 
     pauseGame() {
@@ -454,5 +454,6 @@ export class Engine {
     destroy() {
         soundManager.stopBGM();
         cancelAnimationFrame(this.animationId);
+        this.inputManager.destroy();
     }
 }

@@ -1,13 +1,17 @@
 export class Particle {
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    color: string;
-    life: number;
-    decay: number;
+    x!: number;
+    y!: number;
+    vx!: number;
+    vy!: number;
+    color!: string;
+    life!: number;
+    decay!: number;
 
     constructor(x: number, y: number, color: string) {
+        this.reset(x, y, color);
+    }
+
+    reset(x: number, y: number, color: string) {
         this.x = x;
         this.y = y;
         this.color = color;

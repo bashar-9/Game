@@ -4,16 +4,16 @@ import { IEnemy } from './types';
 import { createNeonSprite, CACHED_SPRITES } from './AssetCache';
 
 export class Bullet {
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    damage: number;
-    pierce: number;
-    radius: number;
-    life: number;
-    hitList: IEnemy[];
-    isCrit: boolean;
+    x!: number;
+    y!: number;
+    vx!: number;
+    vy!: number;
+    damage!: number;
+    pierce!: number;
+    radius!: number;
+    life!: number;
+    hitList!: IEnemy[];
+    isCrit!: boolean;
 
     static CACHE_SIZE = 32;
     static CACHE_HALF = 16;
@@ -21,6 +21,11 @@ export class Bullet {
     static BASE_GEN_RADIUS = 5;
 
     constructor(x: number, y: number, vx: number, vy: number, damage: number, pierce: number, size: number, isCrit: boolean = false) {
+        this.reset(x, y, vx, vy, damage, pierce, size, isCrit);
+        this.getSprite();
+    }
+
+    reset(x: number, y: number, vx: number, vy: number, damage: number, pierce: number, size: number, isCrit: boolean) {
         this.x = x;
         this.y = y;
         this.vx = vx;
@@ -31,8 +36,6 @@ export class Bullet {
         this.life = 100;
         this.hitList = [];
         this.isCrit = isCrit;
-
-        this.getSprite();
     }
 
     update(enemies: IEnemy[], particles: Particle[], delta: number = 1) {
