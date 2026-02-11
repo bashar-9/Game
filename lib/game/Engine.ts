@@ -281,13 +281,19 @@ export class Engine {
         const settings = DIFFICULTY_SETTINGS[this.diffMode];
 
         // Spawn Logic with Early Game Dampener & Late Game Ramp
-        // 0-3 mins: Ramp from 40% to 100% capacity (was 0-3 mins 15%-100%)
+        // 0-3 mins: Ramp from 40% to 100% capacity
         const earlyGameRamp = Math.min(1.0, 0.40 + (this.gameTime / 180) * 0.60);
 
-        // Late Game: Uncapped density scaling for massive hordes
+        // Density scaling (bounded)
         const densityCap = Math.max(1, this.difficulty);
 
-        if (Math.random() < 0.02 * settings.spawnMult * densityCap * earlyGameRamp) {
+        // Hard enemy cap — scales with difficulty, maxes at 400 for intense swarms
+        const maxEnemies = Math.min(400, 50 + Math.floor(this.difficulty * 6));
+
+        // Spawn rate cap at 0.55/frame (~33 enemies/sec max) — chaotic but bounded
+        const spawnChance = Math.min(0.55, 0.02 * settings.spawnMult * densityCap * earlyGameRamp);
+
+        if (this.enemies.length < maxEnemies && Math.random() < spawnChance) {
             const types: ('swarm' | 'tank' | 'basic')[] = ['basic'];
             // Allow Swarms (Yellow) basically from the start to provide "fodder"
             if (this.gameTime > 5) types.push('swarm');
@@ -296,6 +302,16 @@ export class Engine {
             const enemy = this.enemyPool.acquire();
             // Spawn at WORLD edge, not screen edge
             enemy.reset(type, this.worldWidth, this.worldHeight, this.player.level, this.diffMode, this.difficulty);
+
+            // Smart spawn: avoid spawning into existing clusters
+            let retries = 0;
+            while (retries < 3) {
+                const nearbyCount = this.spatialHash.query(enemy.x, enemy.y, 100).size;
+                if (nearbyCount < 3) break;
+                enemy.reset(type, this.worldWidth, this.worldHeight, this.player.level, this.diffMode, this.difficulty);
+                retries++;
+            }
+
             this.enemies.push(enemy);
         }
 

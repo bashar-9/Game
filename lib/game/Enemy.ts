@@ -66,9 +66,9 @@ export class Enemy {
         const baseSpeed = (stats as any).speedBase || (stats as any).speed;
         this.speed = baseSpeed + (type === 'swarm' || type === 'basic' ? Math.random() * (type === 'swarm' ? 1.0 : 0.5) : 0);
 
-        const diffScale = 1 + (Math.max(0, diffLevel - 1) * 0.5);
+        const diffScale = 1 + (Math.max(0, diffLevel - 1) * 0.7);
         this.hp = stats.hpBase * diffScale * settings.hpMult * levelMult;
-        this.xpValue = Math.floor(stats.xpValue * (1 + (diffLevel * 0.15)));
+        this.xpValue = Math.floor(stats.xpValue * (1 + (diffLevel * 0.35)));
         this.damage = stats.damageBase * settings.dmgMult * (1 + (diffLevel * 0.15));
         this.mass = stats.mass;
 
@@ -116,7 +116,8 @@ export class Enemy {
         this.pushY *= decayFactor;
 
         // Soft collision between NEARBY enemies only (via spatial hash)
-        const nearby = spatialHash.query(this.x, this.y, this.radius * 3);
+        // Wider query radius (5x) so enemies start separating before full overlap
+        const nearby = spatialHash.query(this.x, this.y, this.radius * 5);
         for (const other of nearby) {
             if (other === this) continue;
             const dx = this.x - other.x;
@@ -126,9 +127,21 @@ export class Enemy {
 
             if (distSq < radSum * radSum) {
                 const dist = Math.sqrt(distSq);
+                if (dist < 0.01) {
+                    // Nearly identical positions — push in random direction
+                    const randAngle = Math.random() * Math.PI * 2;
+                    this.x += Math.cos(randAngle) * 2;
+                    this.y += Math.sin(randAngle) * 2;
+                    continue;
+                }
                 const force = (radSum - dist) / radSum;
-                const fx = (dx / dist) * force * 0.4 * delta;
-                const fy = (dy / dist) * force * 0.4 * delta;
+                const separationStrength = 1.5;
+                const rawFx = (dx / dist) * force * separationStrength * delta;
+                const rawFy = (dy / dist) * force * separationStrength * delta;
+                // Minimum push so deeply overlapping enemies always separate
+                const minPush = 0.5;
+                const fx = Math.abs(rawFx) < minPush ? Math.sign(rawFx || 1) * minPush : rawFx;
+                const fy = Math.abs(rawFy) < minPush ? Math.sign(rawFy || 1) * minPush : rawFy;
                 this.x += fx; this.y += fy;
                 other.x -= fx; other.y -= fy;
             }

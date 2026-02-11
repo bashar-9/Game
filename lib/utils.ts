@@ -76,13 +76,13 @@ export function getDifficulty(t: number): number {
     // 0-5 mins: Linear 1.0 -> 6.0 (approx)
     const linear = 1 + Math.floor(t / 30) * 0.5;
 
-    // 5+ mins: Quadratic Kicker (Aggressive Ramp)
-    // At 10 mins (5 over): 5^2.2 * 1.5 ~= 34 * 1.5 = +51
-    let quadratic = 0;
+    // 5+ mins: Linear + logarithmic ramp (aggressive but bounded)
+    // At 10 mins: ~21, at 15 mins: ~41 (vs old: 51, 356)
+    let lateGame = 0;
     if (t > 300) {
         const minutesOver = (t - 300) / 60;
-        quadratic = Math.pow(minutesOver, 2.2) * 1.5;
+        lateGame = minutesOver * 3 + Math.log2(1 + minutesOver) * 4;
     }
 
-    return linear + quadratic;
+    return linear + lateGame;
 }
