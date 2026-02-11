@@ -52,32 +52,32 @@ export const POWERUP_INFO = {
         name: 'OVERCLOCK',
         description: '3x Damage & Speed',
         color: '#ff9500',
-        icon: '⚡',
-        emoji: '⚡'
+        icon: 'overclock',
+        emoji: 'overclock'
     },
     invulnerability: {
         id: 'invulnerability',
         name: 'PRIVILEGE_ESC',
         description: 'Damage Immune',
         color: '#ffee00',
-        icon: '🔑',
-        emoji: '🔑'
+        icon: 'privilege_esc',
+        emoji: 'privilege_esc'
     },
     magnet: {
         id: 'magnet',
         name: 'DATA_SIPHON',
         description: 'Max Pickup Range',
         color: '#00ddff',
-        icon: '📡',
-        emoji: '📡'
+        icon: 'data_siphon',
+        emoji: 'data_siphon'
     },
     drop_rate: {
         id: 'drop_rate',
         name: 'RNG_EXPLOIT',
         description: '+10% Drop Rate / Lvl',
         color: '#ff55ff',
-        icon: '🎲',
-        emoji: '🎲'
+        icon: 'rng_exploit',
+        emoji: 'rng_exploit'
     }
 };
 
@@ -161,76 +161,76 @@ export interface Upgrade {
 
 export const UPGRADES_LIST: Upgrade[] = [
     {
-        id: 'multishot', count: 0, name: 'FORK_PROCESS', desc: 'Splits the main thread into additional projectiles.', stat: '+1 Projectile', icon: '⫚', maxLevel: 15,
+        id: 'multishot', count: 0, name: 'FORK_PROCESS', desc: 'Splits the main thread into additional projectiles.', stat: '+1 Projectile', icon: 'fork_process', maxLevel: 15,
         apply: (p: IPlayer) => p.projectileCount++,
         evoName: 'PARALLEL_EXEC', evoDesc: 'EVOLUTION: +2 Threads instantly.', evoApply: (p: IPlayer) => p.projectileCount += 2,
         getCurrentStat: (c) => `+${c} Thread${c > 1 ? 's' : ''}`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'multishot'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'haste', count: 0, name: 'I/O_ACCELERATOR', desc: 'Optimizes output stream frequency.', stat: '+30% Attack Speed', icon: '⚡', maxLevel: 15,
+        id: 'haste', count: 0, name: 'I/O_ACCELERATOR', desc: 'Optimizes output stream frequency.', stat: '+30% Attack Speed', icon: 'io_accelerator', maxLevel: 15,
         apply: (p: IPlayer) => { p.modifiers.attackSpeed += 0.30; (p as any).recalculateStats(); },
         evoName: 'BURST_MODE', evoDesc: 'EVOLUTION: Maximum throughput boost.', evoApply: (p: IPlayer) => { p.modifiers.attackSpeed += 0.6; (p as any).recalculateStats(); },
         getCurrentStat: (c) => `+${Math.round(c * 30)}% I/O Spd`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'haste'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'damage', count: 0, name: 'VOLTAGE_SPIKE', desc: 'Amplifies signal strength on impact.', stat: '+25% Damage', icon: '💥', maxLevel: 15,
+        id: 'damage', count: 0, name: 'VOLTAGE_SPIKE', desc: 'Amplifies signal strength on impact.', stat: '+25% Damage', icon: 'voltage_spike', maxLevel: 15,
         apply: (p: IPlayer) => { p.modifiers.damage += 0.25; (p as any).recalculateStats(); },
         evoName: 'POWER_SURGE', evoDesc: 'EVOLUTION: +50% Voltage increase.', evoApply: (p: IPlayer) => { p.modifiers.damage += 0.5; (p as any).recalculateStats(); },
         getCurrentStat: (c) => `+${c * 25}% Voltage`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'damage'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'speed', count: 0, name: 'BUS_VELOCITY', desc: 'Increases data transfer across the bus.', stat: '+15% Move Speed', icon: '👟', maxLevel: 10,
+        id: 'speed', count: 0, name: 'BUS_VELOCITY', desc: 'Increases data transfer across the bus.', stat: '+15% Move Speed', icon: 'bus_velocity', maxLevel: 10,
         apply: (p: IPlayer) => p.speed *= 1.15,
         evoName: 'HYPERTHREADING', evoDesc: 'EVOLUTION: Massive Speed + Max HP.', evoApply: (p: IPlayer) => { p.speed *= 1.4; p.maxHp += 50; p.hp += 50; },
         getCurrentStat: (c) => `+${Math.round((Math.pow(1.15, c) - 1) * 100)}% Velocity`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'speed'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'pierce', count: 0, name: 'POINTER_PIERCERS', desc: 'Logic passes straight through targets.', stat: '+1 Pierce', icon: '🏹', maxLevel: 8,
+        id: 'pierce', count: 0, name: 'POINTER_PIERCERS', desc: 'Logic passes straight through targets.', stat: '+1 Pierce', icon: 'pointer_piercers', maxLevel: 8,
         apply: (p: IPlayer) => p.pierce++,
         evoName: 'NULL_TRAVERSAL', evoDesc: 'EVOLUTION: +3 Pierce & Velocity.', evoApply: (p: IPlayer) => { p.pierce += 3; p.bulletSpeed += 5; },
         getCurrentStat: (c) => `+${c} Depth`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'pierce'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'maxhp', count: 0, name: 'ENCAP_SHIELDING', desc: 'Encapsulates core logic for protection.', stat: '+150 Max HP', icon: '🛡️', maxLevel: 15,
+        id: 'maxhp', count: 0, name: 'ENCAP_SHIELDING', desc: 'Encapsulates core logic for protection.', stat: '+150 Max HP', icon: 'encap_shielding', maxLevel: 15,
         apply: (p: IPlayer) => { p.maxHp += 150; p.hp += 150; },
         evoName: 'SANDBOXED_CORE', evoDesc: 'EVOLUTION: +75 Max HP & 50% Heal.', evoApply: (p: IPlayer) => { p.maxHp += 75; p.hp = Math.min(p.maxHp, p.hp + (p.maxHp * 0.5)); },
         getCurrentStat: (c) => `+${c * 150} Buffer`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'maxhp'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'regen', count: 0, name: 'SECTOR_REBUILD', desc: 'Repairs corrupted sectors over time.', stat: '+5 HP / Sec', icon: '💊', maxLevel: 10,
+        id: 'regen', count: 0, name: 'SECTOR_REBUILD', desc: 'Repairs corrupted sectors over time.', stat: '+5 HP / Sec', icon: 'sector_rebuild', maxLevel: 10,
         apply: (p: IPlayer) => p.regen += 5,
         evoName: 'DEFRAG_DAEMON', evoDesc: 'EVOLUTION: +5 Regeneration/sec.', evoApply: (p: IPlayer) => p.regen += 5,
         getCurrentStat: (c) => `+${c * 5} Repair/Sec`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'regen'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'size', count: 0, name: 'BUFFER_EXPANSION', desc: 'Increases packet size for larger impact.', stat: '+2 Bullet Size', icon: '🌑', maxLevel: 5,
+        id: 'size', count: 0, name: 'BUFFER_EXPANSION', desc: 'Increases packet size for larger impact.', stat: '+2 Bullet Size', icon: 'buffer_expansion', maxLevel: 5,
         apply: (p: IPlayer) => p.bulletSize += 2,
         evoName: 'HEAP_OVERFLOW', evoDesc: 'EVOLUTION: +2 Buffer Size.', evoApply: (p: IPlayer) => p.bulletSize += 2,
         getCurrentStat: (c) => `+${c * 2} Bytes`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'size'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'repulsion', count: 0, name: 'RADIUS_REJECTION', desc: 'Pushes invalid data from the core.', stat: '+Range/Force/Dmg', icon: '⭕', maxLevel: 10,
+        id: 'repulsion', count: 0, name: 'RADIUS_REJECTION', desc: 'Pushes invalid data from the core.', stat: '+Range/Force/Dmg', icon: 'radius_rejection', maxLevel: 10,
         apply: (p: IPlayer) => p.repulsionLevel++,
         evoName: 'KERNEL_PANIC_WAVE', evoDesc: 'EVOLUTION: Massive Radius & Double Burn.', evoApply: (p: IPlayer) => { p.repulsionLevel += 5; },
         getCurrentStat: (c) => `Level ${c}`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'repulsion'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'critChance', count: 0, name: 'HEURISTIC_LOGIC', desc: 'Smarter targeting for critical hits.', stat: '+25% Crit Chance', icon: '🎯', maxLevel: 4,
+        id: 'critChance', count: 0, name: 'HEURISTIC_LOGIC', desc: 'Smarter targeting for critical hits.', stat: '+25% Crit Chance', icon: 'heuristic_logic', maxLevel: 4,
         apply: (p: IPlayer) => p.critChance = Math.min(1.0, p.critChance + 0.25),
         getCurrentStat: (c) => `+${Math.round(c * 25)}% Precision`,
         isMaxed: (p: IPlayer) => { const u = UPGRADES_LIST.find(x => x.id === 'critChance'); return u ? u.count >= u.maxLevel : false; }
     },
     {
-        id: 'critDamage', count: 0, name: 'BITWISE_BURST', desc: 'Amplifies critical hit intensity.', stat: '+25% Crit Dmg', icon: '🔋', maxLevel: 10,
+        id: 'critDamage', count: 0, name: 'BITWISE_BURST', desc: 'Amplifies critical hit intensity.', stat: '+25% Crit Dmg', icon: 'bitwise_burst', maxLevel: 10,
         apply: (p: IPlayer) => p.critMultiplier += 0.25,
         evoName: 'STACK_SMASH', evoDesc: 'EVOLUTION: +10% Crit Dmg.', evoApply: (p: IPlayer) => p.critMultiplier += 0.10,
         getCurrentStat: (c) => `+${c * 25}% Burst`,

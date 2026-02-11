@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { UPGRADES_LIST } from '@/lib/config';
 import { Shield, Zap, Skull, Volume2, Music, Speaker } from 'lucide-react';
 import { soundManager, AudioCategory } from '@/lib/game/SoundManager';
+import { GameIcon } from './GameIcons';
 
 interface DevMenuProps {
     onStart: (config: { level: number; upgrades: Record<string, number>; startTime?: number; difficulty?: 'easy' | 'medium' | 'hard'; powerups?: Record<string, boolean> }) => void;
@@ -249,9 +250,9 @@ export default function DevMenu({ onStart, onClose }: DevMenuProps) {
                         <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Active Powerups</label>
                         <div className="grid grid-cols-3 gap-2">
                             {[
-                                { id: 'double_stats', label: '3X STATS', color: '#ff0055', icon: '⚡' },
-                                { id: 'invulnerability', label: 'SHIELD', color: '#ffff00', icon: '🛡️' },
-                                { id: 'magnet', label: 'MAGNET', color: '#0088ff', icon: '🧲' }
+                                { id: 'double_stats', label: '3X STATS', color: '#ff0055', icon: 'overclock' },
+                                { id: 'invulnerability', label: 'SHIELD', color: '#ffff00', icon: 'privilege_esc' },
+                                { id: 'magnet', label: 'MAGNET', color: '#0088ff', icon: 'data_siphon' }
                             ].map(p => {
                                 const isActive = powerups[p.id];
                                 return (
@@ -267,7 +268,7 @@ export default function DevMenu({ onStart, onClose }: DevMenuProps) {
                                         `}
                                         style={isActive ? { borderColor: p.color, backgroundColor: `${p.color}20` } : {}}
                                     >
-                                        <span className="text-xl">{p.icon}</span>
+                                        <span className="text-xl"><GameIcon id={p.icon} size={20} /></span>
                                         <span className={`font-bold text-[9px] tracking-wider ${isActive ? 'text-white' : 'text-white/40'}`}>
                                             {p.label}
                                         </span>
@@ -302,7 +303,7 @@ export default function DevMenu({ onStart, onClose }: DevMenuProps) {
                                         `}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <span className="text-xl">{u.icon}</span>
+                                            <span className="text-xl"><GameIcon id={u.icon} size={20} /></span>
                                             <div className="flex flex-col">
                                                 <span className={`font-bold text-xs ${isMaxed ? 'text-[#ffd700]' : hasUpgrade ? 'text-[#00ffcc]' : 'text-white/60'}`}>
                                                     {u.name}

@@ -3,6 +3,7 @@
 import { useGameStore } from '@/store/useGameStore';
 import { POWERUP_INFO, POWERUP_DURATIONS } from '@/lib/config';
 import { useEffect, useState } from 'react';
+import { GameIcon } from './GameIcons';
 
 // Circular progress ring component
 function CircularProgress({
@@ -127,7 +128,7 @@ function PowerupSlot({
                         fontSize: isMobile ? '1.25rem' : '1.5rem'
                     }}
                 >
-                    {info.emoji}
+                    <GameIcon id={info.emoji} size={isMobile ? 20 : 24} />
                 </span>
             </div>
 

@@ -3,6 +3,7 @@
 import { useGameStore } from '@/store/useGameStore';
 import { formatTime } from '@/lib/utils';
 import { RotateCw, Home, ArrowUpCircle } from 'lucide-react';
+import { GameIcon } from './GameIcons';
 import { usePowerUpProgressionStore } from '@/store/PowerUpProgressionStore';
 import { useState } from 'react';
 import PowerUpUpgradeScreen from './PowerUpUpgradeScreen';
@@ -43,10 +44,10 @@ export default function GameOverScreen({ onRestart }: GameOverScreenProps) {
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-6">
-                    <StatCard label="TIME" value={formatTime(time)} icon="⏱" />
-                    <StatCard label="VERSION" value={level.toString()} icon="⚡" />
-                    <StatCard label="DELETIONS" value={killCount.toString()} icon="💀" />
-                    <StatCard label="DAMAGE" value={damage.toString()} icon="🔥" />
+                    <StatCard label="TIME" value={formatTime(time)} icon="timer" />
+                    <StatCard label="VERSION" value={level.toString()} icon="io_accelerator" />
+                    <StatCard label="DELETIONS" value={killCount.toString()} icon="skull" />
+                    <StatCard label="DAMAGE" value={damage.toString()} icon="fire" />
                 </div>
 
                 {/* Buttons - equal height, side by side */}
@@ -89,7 +90,7 @@ export default function GameOverScreen({ onRestart }: GameOverScreenProps) {
 function StatCard({ label, value, icon }: { label: string; value: string; icon: string }) {
     return (
         <div className="flex flex-col items-center p-4 rounded-xl bg-gradient-to-br from-white/[0.06] to-white/[0.02] border border-white/5">
-            <span className="text-lg mb-1">{icon}</span>
+            <span className="text-lg mb-1"><GameIcon id={icon} size={20} /></span>
             <span className="text-white/40 text-[9px] uppercase tracking-wider font-medium">{label}</span>
             <span className="text-[#ff0055] text-xl md:text-2xl font-mono font-bold">{value}</span>
         </div>

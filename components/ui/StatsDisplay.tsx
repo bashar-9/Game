@@ -2,6 +2,7 @@
 
 import { useGameStore } from '@/store/useGameStore';
 import { UPGRADES_LIST } from '@/lib/config';
+import { GameIcon } from './GameIcons';
 
 export function StatsDisplay() {
     const { level, xp, xpToNext, hp, maxHp, killCount, time, damage } = useGameStore();
@@ -108,7 +109,7 @@ function UpgradeCard({ upgrade: u }: { upgrade: typeof UPGRADES_LIST[0] }) {
             }
         `}>
             {/* Icon */}
-            <span className="text-2xl shrink-0">{u.icon}</span>
+            <span className="text-2xl shrink-0"><GameIcon id={u.icon} size={28} /></span>
 
             {/* Content */}
             <div className="flex-1 min-w-0">

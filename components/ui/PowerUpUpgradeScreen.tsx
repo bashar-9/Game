@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { X, Zap, Skull } from 'lucide-react';
+import { GameIcon } from './GameIcons';
 import { usePowerUpProgressionStore } from '@/store/PowerUpProgressionStore';
 import { POWERUP_INFO, MAX_POWERUP_LEVEL, POWERUP_DURATION_PER_LEVEL, BASE_POWERUP_DURATIONS } from '@/lib/config';
 import { soundManager } from '@/lib/game/SoundManager';
@@ -129,7 +130,7 @@ export default function PowerUpUpgradeScreen({ onClose }: PowerUpUpgradeScreenPr
                                     `}
                                     style={{ filter: isMaxed ? undefined : `drop-shadow(0 0 10px ${info.color})` }}
                                 >
-                                    {info.icon}
+                                    <GameIcon id={info.icon} size={undefined} className="w-full h-full" />
                                 </div>
 
                                 {/* Content */}

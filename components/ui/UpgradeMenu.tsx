@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { UPGRADES_LIST, Upgrade } from '@/lib/config';
+import { GameIcon } from './GameIcons';
 
 import { IPlayer } from '@/lib/game/types';
 import { useGameStore } from '@/store/useGameStore';
@@ -124,7 +125,7 @@ export default function UpgradeMenu({ onSelect, player }: UpgradeMenuProps) {
                                     flex justify-center items-center h-full md:h-auto w-16 md:w-auto
                                     ${evo ? 'drop-shadow-[0_0_20px_rgba(255,215,0,0.6)]' : 'drop-shadow-[0_0_10px_rgba(0,255,204,0.3)]'}
                                 `}>
-                                    {u.icon}
+                                    <GameIcon id={u.icon} size={undefined} className="w-full h-full" />
                                 </div>
 
                                 {/* Content */}
@@ -222,7 +223,7 @@ export default function UpgradeMenu({ onSelect, player }: UpgradeMenuProps) {
                             }
                         `}
                     >
-                        <span className="text-2xl group-hover:rotate-180 transition-transform duration-500">🔄</span>
+                        <span className="text-2xl group-hover:rotate-180 transition-transform duration-500"><GameIcon id="sector_rebuild" size={24} /></span>
                         <div className="flex flex-col items-start">
                             <span className="text-sm font-bold uppercase tracking-wider text-white group-hover:text-[#00ffcc] transition-colors">
                                 Reroll
