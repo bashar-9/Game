@@ -13,6 +13,7 @@ import { ObjectPool } from './ObjectPool';
 import { soundManager } from './SoundManager';
 import { Camera } from './Camera';
 import { MAPS_BY_DIFFICULTY, MapConfig, Wall, HazardZone, resolveWallCollisions, pointInWalls } from '../maps';
+import { SpatialHash } from './SpatialHash';
 
 export class Engine {
     ctx: CanvasRenderingContext2D;
@@ -54,6 +55,8 @@ export class Engine {
 
     stars: { x: number, y: number, size: number, alpha: number }[] = [];
 
+    spatialHash: SpatialHash<Enemy>;
+
     constructor(canvas: HTMLCanvasElement, diffMode: 'easy' | 'medium' | 'hard' = 'easy') {
         // Reset global upgrade state to prevent Sticky/Double-Init issues
         resetUpgrades();
@@ -63,6 +66,9 @@ export class Engine {
         this.diffMode = diffMode;
 
         this.inputManager = new InputManager(canvas);
+
+        // Init Spatial Hash (cell size 100 seems reasonable for enemy sizes of ~20-40)
+        this.spatialHash = new SpatialHash(100);
 
         // Init Pools
         this.bulletPool = new ObjectPool<Bullet>(
@@ -293,6 +299,12 @@ export class Engine {
             this.enemies.push(enemy);
         }
 
+        // Populate Spatial Hash for this frame
+        this.spatialHash.clear();
+        for (const enemy of this.enemies) {
+            this.spatialHash.add(enemy);
+        }
+
         const inputState = this.inputManager.getState();
         this.player.update(
             inputState,
@@ -317,7 +329,9 @@ export class Engine {
 
         for (let i = this.enemies.length - 1; i >= 0; i--) {
             const e = this.enemies[i];
-            e.update(this.player, this.enemies, delta, this.currentMap.walls);
+            // Pass spatialHash instead of enemies array for separation
+            e.update(this.player, this.spatialHash, delta, this.currentMap.walls);
+
             if (e.hp <= 0) {
                 // Drop Logic: Calculate Gem Multiplier
                 let multiplier = 1;
@@ -375,7 +389,8 @@ export class Engine {
 
         for (let i = this.bullets.length - 1; i >= 0; i--) {
             const b = this.bullets[i];
-            b.update(this.enemies, this.particles, delta);
+            // Pass spatialHash instead of enemies array for collision
+            b.update(this.spatialHash, this.particles, delta);
             // Check world bounds OR wall collision
             const hitWall = pointInWalls(b.x, b.y, this.currentMap.walls);
             if (b.life <= 0 || b.x < 0 || b.x > this.worldWidth || b.y < 0 || b.y > this.worldHeight || hitWall) {

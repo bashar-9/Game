@@ -2,6 +2,7 @@ import { BASE_STATS, DIFFICULTY_SETTINGS, CONFIG } from '../config';
 import { showDamage } from '../utils';
 import { IPlayer } from './types';
 import { createNeonSprite, CACHED_SPRITES } from './AssetCache';
+import { SpatialHash } from './SpatialHash';
 
 export class Enemy {
     x!: number;
@@ -80,7 +81,7 @@ export class Enemy {
         showDamage(this.x, this.y, amount, isCrit);
     }
 
-    update(player: IPlayer, enemies: Enemy[], delta: number = 1, walls: { x: number, y: number, w: number, h: number }[] = []) {
+    update(player: IPlayer, spatialHash: SpatialHash<Enemy>, delta: number = 1, walls: { x: number, y: number, w: number, h: number }[] = []) {
         const angle = Math.atan2(player.y - this.y, player.x - this.x);
         this.rotation = angle; // Face player
 
@@ -114,8 +115,9 @@ export class Enemy {
         this.pushX *= decayFactor;
         this.pushY *= decayFactor;
 
-        // Soft collision between enemies
-        for (const other of enemies) {
+        // Soft collision between NEARBY enemies only (via spatial hash)
+        const nearby = spatialHash.query(this.x, this.y, this.radius * 3);
+        for (const other of nearby) {
             if (other === this) continue;
             const dx = this.x - other.x;
             const dy = this.y - other.y;

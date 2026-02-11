@@ -2,6 +2,7 @@ import { CONFIG } from '../config';
 import { Particle } from './Particle';
 import { IEnemy } from './types';
 import { createNeonSprite, CACHED_SPRITES } from './AssetCache';
+import { SpatialHash } from './SpatialHash';
 
 export class Bullet {
     x!: number;
@@ -38,12 +39,14 @@ export class Bullet {
         this.isCrit = isCrit;
     }
 
-    update(enemies: IEnemy[], particles: Particle[], delta: number = 1) {
+    update(spatialHash: SpatialHash<IEnemy>, particles: Particle[], delta: number = 1) {
         this.x += this.vx * delta;
         this.y += this.vy * delta;
         this.life -= delta;
 
-        for (const e of enemies) {
+        // Query only nearby enemies via spatial hash
+        const nearby = spatialHash.query(this.x, this.y, this.radius + 50);
+        for (const e of nearby) {
             if (this.hitList.includes(e)) continue;
             const dist = Math.hypot(this.x - e.x, this.y - e.y);
             if (dist < this.radius + e.radius) {
