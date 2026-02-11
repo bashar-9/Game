@@ -12,7 +12,7 @@ import { InputManager } from './InputManager';
 import { ObjectPool } from './ObjectPool';
 import { soundManager } from './SoundManager';
 import { Camera } from './Camera';
-import { MAPS_BY_DIFFICULTY, MapConfig, Wall, HazardZone, resolveWallCollisions, pointInWalls } from '../maps';
+import { MAPS_BY_DIFFICULTY, MapConfig, Wall, HazardZone, resolveWallCollisions, pointInWalls, getWallAtPoint } from '../maps';
 import { SpatialHash } from './SpatialHash';
 
 export class Engine {
@@ -405,10 +405,11 @@ export class Engine {
 
         for (let i = this.bullets.length - 1; i >= 0; i--) {
             const b = this.bullets[i];
-            // Pass spatialHash instead of enemies array for collision
             b.update(this.spatialHash, this.particles, delta);
             // Check world bounds OR wall collision
-            const hitWall = pointInWalls(b.x, b.y, this.currentMap.walls);
+            // Check for wall collision using getWallAtPoint to handle destructibles
+            const hitWall = getWallAtPoint(b.x, b.y, this.currentMap.walls);
+
             if (b.life <= 0 || b.x < 0 || b.x > this.worldWidth || b.y < 0 || b.y > this.worldHeight || hitWall) {
                 this.bullets.splice(i, 1);
                 this.bulletPool.release(b);
@@ -433,10 +434,12 @@ export class Engine {
 
     draw() {
         const theme = this.currentMap.theme;
+        const width = this.width;
+        const height = this.height;
 
         // Clear with map background color
         this.ctx.fillStyle = theme.backgroundColor;
-        this.ctx.fillRect(0, 0, this.width, this.height);
+        this.ctx.fillRect(0, 0, width, height);
 
         // Save context for world-space rendering
         this.ctx.save();
@@ -446,10 +449,9 @@ export class Engine {
 
         // --- WORLD SPACE RENDERING ---
 
-        // Stars (in world space)
+        // 1. Stars / Background Particles
         this.ctx.fillStyle = '#ffffff';
         for (const star of this.stars) {
-            // Only draw visible stars
             if (this.camera.isVisible(star.x, star.y, star.size, star.size)) {
                 this.ctx.globalAlpha = star.alpha;
                 this.ctx.fillRect(star.x, star.y, star.size, star.size);
@@ -457,350 +459,195 @@ export class Engine {
         }
         this.ctx.globalAlpha = 1.0;
 
-        // Cyber Grid (in world space) - style varies by theme
-        const gridSize = 50;
-
-        // Calculate visible grid bounds
+        // 2. Grid & Floor Patterns
+        const gridSize = 100; // Larger grid for better performance
         const startX = Math.floor(this.camera.x / gridSize) * gridSize;
         const startY = Math.floor(this.camera.y / gridSize) * gridSize;
-        const endX = Math.min(this.worldWidth, this.camera.x + this.width + gridSize);
-        const endY = Math.min(this.worldHeight, this.camera.y + this.height + gridSize);
+        const endX = Math.min(this.worldWidth, this.camera.x + width + gridSize);
+        const endY = Math.min(this.worldHeight, this.camera.y + height + gridSize);
 
-        // SANDBOX - Clean holographic training ground
-        if (theme.hasBlueprintStyle) {
-            // Solid clean grid (no dashes - smoother)
-            this.ctx.strokeStyle = 'rgba(0, 200, 255, 0.08)';
-            this.ctx.lineWidth = 1;
+        this.ctx.lineWidth = 1;
+
+        if (theme.isIndustrial) {
+            // Industrial: Concrete tiles with caution stripes
+            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
             for (let x = startX; x <= endX; x += gridSize) {
-                this.ctx.beginPath();
-                this.ctx.moveTo(x, Math.max(0, this.camera.y));
-                this.ctx.lineTo(x, Math.min(this.worldHeight, this.camera.y + this.height));
-                this.ctx.stroke();
+                this.ctx.beginPath(); this.ctx.moveTo(x, startY); this.ctx.lineTo(x, endY); this.ctx.stroke();
             }
             for (let y = startY; y <= endY; y += gridSize) {
-                this.ctx.beginPath();
-                this.ctx.moveTo(Math.max(0, this.camera.x), y);
-                this.ctx.lineTo(Math.min(this.worldWidth, this.camera.x + this.width), y);
-                this.ctx.stroke();
+                this.ctx.beginPath(); this.ctx.moveTo(startX, y); this.ctx.lineTo(endX, y); this.ctx.stroke();
             }
-
-            // Subtle gradient overlay from edges (vignette)
-            const gradient = this.ctx.createRadialGradient(
-                this.worldWidth / 2, this.worldHeight / 2, 0,
-                this.worldWidth / 2, this.worldHeight / 2, this.worldWidth * 0.7
-            );
-            gradient.addColorStop(0, 'rgba(0, 50, 80, 0)');
-            gradient.addColorStop(1, 'rgba(0, 30, 60, 0.3)');
-            this.ctx.fillStyle = gradient;
-            this.ctx.fillRect(0, 0, this.worldWidth, this.worldHeight);
-
-            // Clean boundary glow (static, not pulsing)
-            this.ctx.strokeStyle = 'rgba(0, 180, 255, 0.4)';
-            this.ctx.lineWidth = 3;
-            this.ctx.strokeRect(10, 10, this.worldWidth - 20, this.worldHeight - 20);
-
-            // Zone label at top
-            this.ctx.font = 'bold 16px monospace';
-            this.ctx.fillStyle = 'rgba(0, 220, 255, 0.5)';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText('[ SANDBOX // TRAINING_MODE ]', this.worldWidth / 2, 60);
-        }
-        // KERNEL PANIC - Glitchy chaos
-        else if (theme.hasGlitchEffect) {
-            // Subtle constant shake (reduced intensity)
-            const shakeX = (Math.random() - 0.5) * 1.5;
-            const shakeY = (Math.random() - 0.5) * 1.5;
-            this.ctx.translate(shakeX, shakeY);
-
-            // Glitchy broken grid
+        } else if (theme.isDatacenter) {
+            // Datacenter: Glowing hexagonal or square grid
             this.ctx.strokeStyle = theme.gridColor;
-            this.ctx.lineWidth = 1;
+            this.ctx.shadowBlur = 4;
+            this.ctx.shadowColor = theme.gridColor;
             for (let x = startX; x <= endX; x += gridSize) {
-                if (Math.random() > 0.2) {
+                this.ctx.beginPath(); this.ctx.moveTo(x, startY); this.ctx.lineTo(x, endY); this.ctx.stroke();
+            }
+            for (let y = startY; y <= endY; y += gridSize) {
+                this.ctx.beginPath(); this.ctx.moveTo(startX, y); this.ctx.lineTo(endX, y); this.ctx.stroke();
+            }
+            this.ctx.shadowBlur = 0;
+        } else if (theme.isGlitch) {
+            // Glitch: Broken grid
+            this.ctx.strokeStyle = theme.gridColor;
+            for (let x = startX; x <= endX; x += gridSize) {
+                if (Math.random() > 0.1) {
                     this.ctx.beginPath();
-                    this.ctx.moveTo(x, Math.max(0, this.camera.y));
-                    this.ctx.lineTo(x, Math.min(this.worldHeight, this.camera.y + this.height));
+                    this.ctx.moveTo(x, startY);
+                    this.ctx.lineTo(x, endY + (Math.random() * 20));
                     this.ctx.stroke();
                 }
             }
             for (let y = startY; y <= endY; y += gridSize) {
-                if (Math.random() > 0.2) {
+                if (Math.random() > 0.1) {
                     this.ctx.beginPath();
-                    this.ctx.moveTo(Math.max(0, this.camera.x), y);
-                    this.ctx.lineTo(Math.min(this.worldWidth, this.camera.x + this.width), y);
+                    this.ctx.moveTo(startX, y);
+                    this.ctx.lineTo(endX, y);
                     this.ctx.stroke();
                 }
             }
-
-            // Scanlines
-            this.ctx.fillStyle = 'rgba(255, 0, 80, 0.02)';
-            for (let y = this.camera.y; y < this.camera.y + this.height; y += 3) {
-                this.ctx.fillRect(this.camera.x, y, this.width, 1);
-            }
-
-            // Random glitch blocks
-            if (Math.random() < 0.15) {
-                this.ctx.fillStyle = `rgba(255, 0, ${50 + Math.random() * 50}, 0.12)`;
-                const gx = this.camera.x + Math.random() * this.width;
-                const gy = this.camera.y + Math.random() * this.height;
-                this.ctx.fillRect(gx, gy, 30 + Math.random() * 80, 2 + Math.random() * 6);
-            }
-
-            // Chromatic aberration effect on boundary
-            this.ctx.strokeStyle = 'rgba(255, 0, 100, 0.3)';
-            this.ctx.lineWidth = 2;
-            this.ctx.strokeRect(3, 3, this.worldWidth - 6, this.worldHeight - 6);
-            this.ctx.strokeStyle = 'rgba(0, 255, 255, 0.3)';
-            this.ctx.strokeRect(-2, -2, this.worldWidth + 4, this.worldHeight + 4);
-
-            // Error messages floating
-            if (this.frames % 180 < 90) {
-                this.ctx.font = 'bold 12px monospace';
-                this.ctx.fillStyle = 'rgba(255, 50, 80, 0.5)';
-                this.ctx.textAlign = 'left';
-                this.ctx.fillText('!! CRITICAL_ERROR !!', this.camera.x + 50, this.camera.y + 50);
-                this.ctx.fillText('MEMORY_CORRUPTION_DETECTED', this.camera.x + 50, this.camera.y + 70);
-            }
-
-            // Warning boundary
-            this.ctx.strokeStyle = 'rgba(255, 0, 50, 0.5)';
-            this.ctx.lineWidth = 4;
-            this.ctx.strokeRect(0, 0, this.worldWidth, this.worldHeight);
         }
-        // PRODUCTION - Data center with matrix rain effect
-        else if (theme.hasBlinkingLights) {
-            // Clean base grid
-            this.ctx.strokeStyle = theme.gridColor;
-            this.ctx.lineWidth = 1;
-            for (let x = startX; x <= endX; x += gridSize) {
-                this.ctx.beginPath();
-                this.ctx.moveTo(x, Math.max(0, this.camera.y));
-                this.ctx.lineTo(x, Math.min(this.worldHeight, this.camera.y + this.height));
-                this.ctx.stroke();
-            }
-            for (let y = startY; y <= endY; y += gridSize) {
-                this.ctx.beginPath();
-                this.ctx.moveTo(Math.max(0, this.camera.x), y);
-                this.ctx.lineTo(Math.min(this.worldWidth, this.camera.x + this.width), y);
-                this.ctx.stroke();
-            }
 
+        // 3. Decorations (Floor Decals, Cables)
+        if (this.currentMap.decorations) {
+            for (const dec of this.currentMap.decorations) {
+                if (!this.camera.isVisible(dec.x, dec.y, dec.w, dec.h)) continue;
 
+                this.ctx.save();
+                this.ctx.translate(dec.x + dec.w / 2, dec.y + dec.h / 2);
+                if (dec.rotation) this.ctx.rotate(dec.rotation);
+                this.ctx.translate(-dec.w / 2, -dec.h / 2);
 
-            // Floor hazard stripes near slow zones (if any visible)
-            this.ctx.fillStyle = 'rgba(255, 200, 0, 0.08)';
-            for (const hazard of this.currentMap.hazards) {
-                if (hazard.type === 'slow' && this.camera.isVisible(hazard.x, hazard.y, hazard.w, hazard.h)) {
-                    // Warning stripes around slow zone
-                    for (let i = 0; i < hazard.w; i += 20) {
-                        this.ctx.fillRect(hazard.x + i, hazard.y - 10, 10, 5);
-                        this.ctx.fillRect(hazard.x + i, hazard.y + hazard.h + 5, 10, 5);
-                    }
+                this.ctx.fillStyle = dec.color;
+                this.ctx.globalAlpha = dec.opacity ?? 0.8;
+
+                if (dec.type === 'cable') {
+                    this.ctx.fillRect(0, 0, dec.w, dec.h);
+                } else if (dec.type === 'floor_decal') {
+                    this.ctx.fillRect(0, 0, dec.w, dec.h);
+                    // Hazard stripes
+                    this.ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                    for (let i = 0; i < dec.w; i += 20) this.ctx.fillRect(i, 0, 10, dec.h);
+                } else if (dec.type === 'symbol') {
+                    this.ctx.font = `${dec.w}px Arial`;
+                    this.ctx.textAlign = 'center';
+                    this.ctx.textBaseline = 'middle';
+                    this.ctx.fillText('⚠', dec.w / 2, dec.h / 2);
+                } else if (dec.type === 'crack') {
+                    this.ctx.strokeStyle = dec.color;
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, 0);
+                    this.ctx.lineTo(dec.w, dec.h);
+                    this.ctx.moveTo(dec.w, 0);
+                    this.ctx.lineTo(0, dec.h);
+                    this.ctx.stroke();
                 }
-            }
 
-            // Clean cyan boundary
-            this.ctx.strokeStyle = 'rgba(0, 255, 200, 0.35)';
-            this.ctx.lineWidth = 3;
-            this.ctx.strokeRect(5, 5, this.worldWidth - 10, this.worldHeight - 10);
-
-            // Status bar at top
-            this.ctx.font = '11px monospace';
-            this.ctx.fillStyle = 'rgba(0, 255, 200, 0.4)';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText('[ PRODUCTION_SERVER // ACTIVE ]', this.worldWidth / 2, 40);
-        }
-        // Default grid style
-        else {
-            this.ctx.strokeStyle = theme.gridColor;
-            this.ctx.lineWidth = 1;
-            for (let x = startX; x <= endX; x += gridSize) {
-                this.ctx.beginPath();
-                this.ctx.moveTo(x, Math.max(0, this.camera.y));
-                this.ctx.lineTo(x, Math.min(this.worldHeight, this.camera.y + this.height));
-                this.ctx.stroke();
+                this.ctx.restore();
             }
-            for (let y = startY; y <= endY; y += gridSize) {
-                this.ctx.beginPath();
-                this.ctx.moveTo(Math.max(0, this.camera.x), y);
-                this.ctx.lineTo(Math.min(this.worldWidth, this.camera.x + this.width), y);
-                this.ctx.stroke();
-            }
+            this.ctx.globalAlpha = 1.0;
         }
 
-        // Draw Hazard Zones (before walls so walls overlap)
+        // 4. Hazards
         for (const hazard of this.currentMap.hazards) {
             if (this.camera.isVisible(hazard.x, hazard.y, hazard.w, hazard.h)) {
-                // Pulsing effect
-                const pulseSpeed = hazard.pulseSpeed ?? 2;
-                const pulse = 0.6 + 0.4 * Math.sin(this.frames * pulseSpeed / 60);
-
+                const pulse = 0.5 + 0.3 * Math.sin(this.frames * (hazard.pulseSpeed || 3) * 0.05);
                 this.ctx.fillStyle = hazard.color;
                 this.ctx.globalAlpha = pulse;
                 this.ctx.fillRect(hazard.x, hazard.y, hazard.w, hazard.h);
 
                 // Border
-                this.ctx.strokeStyle = hazard.type === 'damage' ? '#ff0055' :
-                    hazard.type === 'slow' ? '#00ccff' : '#aa00ff';
+                this.ctx.strokeStyle = hazard.color;
                 this.ctx.lineWidth = 2;
                 this.ctx.strokeRect(hazard.x, hazard.y, hazard.w, hazard.h);
                 this.ctx.globalAlpha = 1.0;
+
+                // Label
+                if (hazard.type === 'damage') {
+                    this.ctx.fillStyle = '#fff';
+                    this.ctx.font = '12px monospace';
+                    this.ctx.fillText('! DANGER !', hazard.x + hazard.w / 2, hazard.y + hazard.h / 2);
+                }
             }
         }
 
-        // Draw Walls - styled per theme
-        for (let i = 0; i < this.currentMap.walls.length; i++) {
-            const wall = this.currentMap.walls[i];
+        // 5. Walls -> Use specific renderers
+        for (const wall of this.currentMap.walls) {
             if (!this.camera.isVisible(wall.x, wall.y, wall.w, wall.h)) continue;
 
-            const cx = wall.x + wall.w / 2;
-            const cy = wall.y + wall.h / 2;
+            // Draw wall shadow
+            this.ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            this.ctx.fillRect(wall.x + 10, wall.y + 10, wall.w, wall.h);
 
-            // SANDBOX - Holographic training pillars
-            if (theme.hasBlueprintStyle) {
-                // Outer glow
-                this.ctx.fillStyle = 'rgba(0, 150, 255, 0.1)';
-                this.ctx.fillRect(wall.x - 5, wall.y - 5, wall.w + 10, wall.h + 10);
+            const wallColor = wall.color || theme.wallColor;
 
-                // Main body with gradient
-                const grad = this.ctx.createLinearGradient(wall.x, wall.y, wall.x + wall.w, wall.y + wall.h);
-                grad.addColorStop(0, '#1a4a6e');
-                grad.addColorStop(0.5, '#2a6a9e');
-                grad.addColorStop(1, '#1a4a6e');
-                this.ctx.fillStyle = grad;
+            if (wall.type === 'crate') {
+                // Industrial Crate
+                this.ctx.fillStyle = '#3a3a4a'; // Dark container
                 this.ctx.fillRect(wall.x, wall.y, wall.w, wall.h);
 
-                // Inner highlight
-                this.ctx.strokeStyle = 'rgba(0, 220, 255, 0.6)';
-                this.ctx.lineWidth = 2;
-                this.ctx.strokeRect(wall.x + 3, wall.y + 3, wall.w - 6, wall.h - 6);
-
-                // Outer border
-                this.ctx.strokeStyle = theme.wallBorderColor;
-                this.ctx.lineWidth = 2;
+                // X-Brace
+                this.ctx.strokeStyle = '#2a2a35';
+                this.ctx.lineWidth = 6;
                 this.ctx.strokeRect(wall.x, wall.y, wall.w, wall.h);
-
-                // Corner accents
-                const cornerSize = 8;
-                this.ctx.strokeStyle = 'rgba(0, 255, 255, 0.8)';
-                this.ctx.lineWidth = 3;
-                // Top-left
                 this.ctx.beginPath();
-                this.ctx.moveTo(wall.x, wall.y + cornerSize);
-                this.ctx.lineTo(wall.x, wall.y);
-                this.ctx.lineTo(wall.x + cornerSize, wall.y);
+                this.ctx.moveTo(wall.x, wall.y); this.ctx.lineTo(wall.x + wall.w, wall.y + wall.h);
+                this.ctx.moveTo(wall.x + wall.w, wall.y); this.ctx.lineTo(wall.x, wall.y + wall.h);
                 this.ctx.stroke();
-                // Bottom-right
-                this.ctx.beginPath();
-                this.ctx.moveTo(wall.x + wall.w - cornerSize, wall.y + wall.h);
-                this.ctx.lineTo(wall.x + wall.w, wall.y + wall.h);
-                this.ctx.lineTo(wall.x + wall.w, wall.y + wall.h - cornerSize);
-                this.ctx.stroke();
-            }
-            // PRODUCTION - Server racks with blinking lights
-            else if (theme.hasBlinkingLights) {
-                // Rack body with metallic gradient
-                const grad = this.ctx.createLinearGradient(wall.x, wall.y, wall.x + wall.w, wall.y);
-                grad.addColorStop(0, '#1a1a2e');
-                grad.addColorStop(0.3, '#252540');
-                grad.addColorStop(0.7, '#252540');
-                grad.addColorStop(1, '#1a1a2e');
-                this.ctx.fillStyle = grad;
-                this.ctx.fillRect(wall.x, wall.y, wall.w, wall.h);
 
-                // Rack border
-                this.ctx.strokeStyle = theme.wallBorderColor;
-                this.ctx.lineWidth = 2;
-                this.ctx.strokeRect(wall.x, wall.y, wall.w, wall.h);
-
-                // Horizontal rack slots
-                this.ctx.strokeStyle = 'rgba(0, 255, 200, 0.15)';
+                // Border Highlight
+                this.ctx.strokeStyle = '#555';
                 this.ctx.lineWidth = 1;
-                const slotHeight = 20;
-                for (let sy = wall.y + slotHeight; sy < wall.y + wall.h; sy += slotHeight) {
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(wall.x + 5, sy);
-                    this.ctx.lineTo(wall.x + wall.w - 5, sy);
-                    this.ctx.stroke();
-                }
+                this.ctx.strokeRect(wall.x, wall.y, wall.w, wall.h);
 
-                // Blinking status lights (for tall walls)
-                if (wall.h > 80) {
-                    const numLights = Math.floor(wall.h / 25);
-                    for (let j = 0; j < numLights; j++) {
-                        const lightY = wall.y + 12 + j * 25;
-                        const phase = Math.sin(this.frames * 0.12 + i * 0.7 + j * 0.4);
-                        const isOn = phase > 0;
 
-                        // Light circle
-                        this.ctx.fillStyle = isOn ?
-                            (j % 4 === 0 ? '#ff4444' : '#44ff88') :
-                            'rgba(40, 40, 40, 0.8)';
-                        this.ctx.beginPath();
-                        this.ctx.arc(wall.x + wall.w - 10, lightY, 3, 0, Math.PI * 2);
-                        this.ctx.fill();
 
-                        // Glow
-                        if (isOn) {
-                            this.ctx.fillStyle = j % 4 === 0 ?
-                                'rgba(255, 60, 60, 0.2)' : 'rgba(60, 255, 120, 0.2)';
-                            this.ctx.beginPath();
-                            this.ctx.arc(wall.x + wall.w - 10, lightY, 8, 0, Math.PI * 2);
-                            this.ctx.fill();
-                        }
+            } else if (wall.type === 'server') {
+                // Database Server Rack
+                this.ctx.fillStyle = '#0a0a10';
+                this.ctx.fillRect(wall.x, wall.y, wall.w, wall.h);
+
+                // Blinking Lights
+                for (let ly = wall.y + 5; ly < wall.y + wall.h; ly += 15) {
+                    if (Math.random() > 0.3) {
+                        this.ctx.fillStyle = Math.random() > 0.5 ? '#00ffcc' : '#ff0055';
+                        this.ctx.fillRect(wall.x + 5, ly, 4, 4);
+                        this.ctx.fillRect(wall.x + 15, ly, 4, 4);
                     }
                 }
 
-                // Label on larger racks
-                if (wall.h > 150) {
-                    this.ctx.font = '8px monospace';
-                    this.ctx.fillStyle = 'rgba(0, 255, 200, 0.4)';
-                    this.ctx.textAlign = 'center';
-                    this.ctx.fillText(`SRV_${i.toString().padStart(2, '0')}`, cx, wall.y + 15);
-                }
-            }
-            // KERNEL PANIC - Corrupted glitchy debris
-            else if (theme.hasGlitchEffect) {
-                // Glitchy offset
-                const glitchOffset = Math.random() < 0.1 ? (Math.random() - 0.5) * 4 : 0;
+                // Glass Door reflection
+                this.ctx.fillStyle = 'rgba(100, 200, 255, 0.1)';
+                this.ctx.fillRect(wall.x + 2, wall.y + 2, wall.w - 4, wall.h - 4);
 
-                // Corrupted fill with noise
-                this.ctx.fillStyle = theme.wallColor;
-                this.ctx.fillRect(wall.x + glitchOffset, wall.y, wall.w, wall.h);
-
-                // Random corruption lines
-                this.ctx.strokeStyle = 'rgba(255, 0, 80, 0.4)';
+                this.ctx.strokeStyle = '#00ccff';
                 this.ctx.lineWidth = 1;
-                for (let j = 0; j < 3; j++) {
-                    const ly = wall.y + Math.random() * wall.h;
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(wall.x, ly);
-                    this.ctx.lineTo(wall.x + wall.w, ly + (Math.random() - 0.5) * 10);
-                    this.ctx.stroke();
-                }
+                this.ctx.strokeRect(wall.x, wall.y, wall.w, wall.h);
 
-                // Flickering border
-                const flicker = Math.random() > 0.9 ? 0.2 : 0.6;
-                this.ctx.strokeStyle = `rgba(255, 0, 80, ${flicker})`;
+            } else if (wall.type === 'glitch') {
+                // Glitching Block
+                const shiftX = Math.random() * 4 - 2;
+                this.ctx.fillStyle = wallColor;
+                this.ctx.fillRect(wall.x + shiftX, wall.y, wall.w, wall.h);
+
+                this.ctx.strokeStyle = Math.random() > 0.5 ? '#ff0055' : '#7700ff';
                 this.ctx.lineWidth = 2;
-                this.ctx.strokeRect(wall.x + glitchOffset, wall.y, wall.w, wall.h);
+                this.ctx.strokeRect(wall.x - shiftX, wall.y, wall.w, wall.h);
 
-                // Chromatic split effect
-                this.ctx.strokeStyle = 'rgba(0, 255, 255, 0.2)';
+            } else if (wall.type === 'glass') {
+                // Glass Barrier
+                this.ctx.fillStyle = 'rgba(200, 255, 255, 0.15)';
+                this.ctx.fillRect(wall.x, wall.y, wall.w, wall.h);
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
                 this.ctx.lineWidth = 1;
-                this.ctx.strokeRect(wall.x - 2, wall.y - 1, wall.w, wall.h);
+                this.ctx.strokeRect(wall.x, wall.y, wall.w, wall.h);
 
-                // "ERROR" text on some blocks
-                if (wall.w > 100 && Math.random() < 0.3) {
-                    this.ctx.font = 'bold 10px monospace';
-                    this.ctx.fillStyle = 'rgba(255, 50, 80, 0.5)';
-                    this.ctx.textAlign = 'center';
-                    this.ctx.fillText('ERR', cx, cy + 4);
-                }
-            }
-            // Default style
-            else {
-                this.ctx.fillStyle = theme.wallColor;
+            } else {
+                // Default Wall
+                this.ctx.fillStyle = wallColor;
                 this.ctx.fillRect(wall.x, wall.y, wall.w, wall.h);
                 this.ctx.strokeStyle = theme.wallBorderColor;
                 this.ctx.lineWidth = 2;
@@ -808,24 +655,45 @@ export class Engine {
             }
         }
 
-        // Draw world boundary
-        this.ctx.strokeStyle = theme.wallBorderColor;
-        this.ctx.lineWidth = 4;
-        this.ctx.strokeRect(0, 0, this.worldWidth, this.worldHeight);
+        // 6. Projectiles
+        for (const b of this.bullets) {
+            b.draw(this.ctx);
+        }
 
-        // Game entities (in world space, with culling)
-        this.pickups.forEach(p => p.draw(this.ctx));
-        this.particles.forEach(p => p.draw(this.ctx));
-        this.enemies.forEach(e => {
-            if (this.camera.isCircleVisible(e.x, e.y, e.radius + 20)) {
-                e.draw(this.ctx);
-            }
-        });
-        this.bullets.forEach(b => b.draw(this.ctx));
+        // 7. Pickups
+        for (const p of this.pickups) {
+            p.draw(this.ctx);
+        }
+
+        // 8. Enemies
+        for (const e of this.enemies) {
+            e.draw(this.ctx);
+        }
+
+        // 9. Player
         this.player.draw(this.ctx, this.frames);
 
-        // Restore context for screen-space rendering
+        // 10. Particles
+        for (const p of this.particles) {
+            p.draw(this.ctx);
+        }
+
         this.ctx.restore();
+
+        // --- UI / Overlay ---
+        if (theme.isDatacenter) {
+            // CRT Scanline effect for Datacenter
+            this.ctx.fillStyle = 'rgba(0, 255, 255, 0.02)';
+            for (let y = 0; y < height; y += 4) {
+                this.ctx.fillRect(0, y, width, 1);
+            }
+        } else if (theme.isGlitch) {
+            // Chromatic Abberation Overlay
+            if (Math.random() > 0.95) {
+                this.ctx.fillStyle = 'rgba(255, 0, 0, 0.05)';
+                this.ctx.fillRect(Math.random() * 10, 0, width, height);
+            }
+        }
 
         // --- SCREEN SPACE (HUD) ---
         this.drawMinimap();

@@ -121,8 +121,8 @@ export default function UpgradeMenu({ onSelect, player }: UpgradeMenuProps) {
 
                                 {/* Icon */}
                                 <div className={`
-                                    text-4xl md:text-6xl group-hover:scale-110 transition-transform duration-300 shrink-0 
-                                    flex justify-center items-center h-full md:h-auto w-16 md:w-auto
+                                    text-6xl md:text-8xl group-hover:scale-110 transition-transform duration-300 shrink-0 
+                                    flex justify-center items-center h-full md:h-auto w-20 md:w-auto
                                     ${evo ? 'drop-shadow-[0_0_20px_rgba(255,215,0,0.6)]' : 'drop-shadow-[0_0_10px_rgba(0,255,204,0.3)]'}
                                 `}>
                                     <GameIcon id={u.icon} size={undefined} className="w-full h-full" />

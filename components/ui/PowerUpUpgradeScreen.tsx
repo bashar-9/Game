@@ -124,8 +124,8 @@ export default function PowerUpUpgradeScreen({ onClose }: PowerUpUpgradeScreenPr
                                 {/* Icon */}
                                 <div
                                     className={`
-                                        text-2xl sm:text-3xl lg:text-5xl group-hover:scale-110 transition-transform duration-300 shrink-0 
-                                        flex justify-center items-center w-10 h-10 sm:w-12 sm:h-12 lg:w-auto lg:h-auto
+                                        text-4xl sm:text-5xl lg:text-7xl group-hover:scale-110 transition-transform duration-300 shrink-0 
+                                        flex justify-center items-center w-12 h-12 sm:w-16 sm:h-16 lg:w-auto lg:h-auto
                                         ${isMaxed ? 'drop-shadow-[0_0_20px_rgba(255,215,0,0.6)]' : 'drop-shadow-[0_0_15px_rgba(0,255,204,0.4)]'}
                                     `}
                                     style={{ filter: isMaxed ? undefined : `drop-shadow(0 0 10px ${info.color})` }}

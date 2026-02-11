@@ -1,12 +1,25 @@
 // Map definitions for scrollable world
 
+export interface Decoration {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    type: 'floor_decal' | 'cable' | 'crack' | 'symbol';
+    color: string;
+    rotation?: number;
+    opacity?: number;
+}
+
+export type WallType = 'wall' | 'crate' | 'fence' | 'server' | 'glass' | 'glitch';
+
 export interface Wall {
     x: number;
     y: number;
     w: number;
     h: number;
-    destructible?: boolean;  // Can be destroyed by player
-    hp?: number;             // Health if destructible
+    type?: WallType;        // Visual type for rendering
+    color?: string;          // Override color
 }
 
 export interface HazardZone {
@@ -30,10 +43,10 @@ export interface MapTheme {
     wallColor: string;
     wallBorderColor: string;
     ambientParticles?: 'dust' | 'digital' | 'ember';
-    // Unique visual effects
-    hasGlitchEffect?: boolean;
-    hasBlinkingLights?: boolean;
-    hasBlueprintStyle?: boolean;
+    // Visual Style Flags
+    isIndustrial?: boolean;   // Sandbox / Warehouse
+    isDatacenter?: boolean;   // Production / Server Farm
+    isGlitch?: boolean;       // Kernel Panic / Corruption
 }
 
 export interface MapConfig {
@@ -43,22 +56,46 @@ export interface MapConfig {
     height: number;
     walls: Wall[];
     hazards: HazardZone[];
+    decorations: Decoration[];
     theme: MapTheme;
 }
 
-// --- SANDBOX (Easy) ---
-// Open training ground with 4 corner pillars
+// --- SANDBOX (Easy) -> "Neon Warehouse" Style ---
+// Open courtyard with scattered shipping containers (crates)
 const SANDBOX_WALLS: Wall[] = [
-    // Top-left pillar
-    { x: 400, y: 400, w: 120, h: 120 },
-    // Top-right pillar
-    { x: 1980, y: 400, w: 120, h: 120 },
-    // Bottom-left pillar
-    { x: 400, y: 1980, w: 120, h: 120 },
-    // Bottom-right pillar
-    { x: 1980, y: 1980, w: 120, h: 120 },
-    // Center obstacle
-    { x: 1190, y: 1190, w: 120, h: 120 },
+    // Central "Arena" bounds defined by heavy crates
+    // Top Left Cluster
+    { x: 300, y: 300, w: 100, h: 200, type: 'crate' },
+    { x: 400, y: 350, w: 100, h: 100, type: 'crate' },
+
+    // Top Right Cluster
+    { x: 2100, y: 300, w: 100, h: 200, type: 'crate' },
+    { x: 2000, y: 350, w: 100, h: 100, type: 'crate' },
+
+    // Bottom Left Cluster
+    { x: 300, y: 2000, w: 100, h: 200, type: 'crate' },
+    { x: 400, y: 2050, w: 100, h: 100, type: 'crate' },
+
+    // Bottom Right Cluster
+    { x: 2100, y: 2000, w: 100, h: 200, type: 'crate' },
+    { x: 2000, y: 2050, w: 100, h: 100, type: 'crate' },
+
+    // Center Structures - Indestructible "Core" pillars
+    { x: 1000, y: 1000, w: 80, h: 500, type: 'wall' },
+    { x: 1420, y: 1000, w: 80, h: 500, type: 'wall' },
+
+    // Scattered cover
+    { x: 800, y: 600, w: 80, h: 80, type: 'crate' },
+    { x: 1700, y: 600, w: 80, h: 80, type: 'crate' },
+    { x: 800, y: 1800, w: 80, h: 80, type: 'crate' },
+    { x: 1700, y: 1800, w: 80, h: 80, type: 'crate' },
+];
+
+const SANDBOX_DECORATIONS: Decoration[] = [
+    // Floor markings
+    { x: 1250, y: 1250, w: 400, h: 400, type: 'symbol', color: 'rgba(255, 200, 0, 0.1)', rotation: 0 },
+    { x: 1250, y: 400, w: 200, h: 20, type: 'floor_decal', color: 'rgba(255, 255, 0, 0.2)' },
+    { x: 1250, y: 2100, w: 200, h: 20, type: 'floor_decal', color: 'rgba(255, 255, 0, 0.2)' },
 ];
 
 export const MAP_SANDBOX: MapConfig = {
@@ -67,47 +104,59 @@ export const MAP_SANDBOX: MapConfig = {
     width: 2500,
     height: 2500,
     walls: SANDBOX_WALLS,
-    hazards: [], // No hazards in training mode - safe environment
+    hazards: [],
+    decorations: SANDBOX_DECORATIONS,
     theme: {
-        backgroundColor: '#0d1b2a', // Deeper blueprint blue
-        gridColor: 'rgba(0, 180, 255, 0.12)',
-        wallColor: '#1b3a5c',
-        wallBorderColor: '#00ccff',
+        backgroundColor: '#1a1a24', // Dark industrial grey
+        gridColor: 'rgba(255, 220, 100, 0.05)', // Faint yellow industrial grid
+        wallColor: '#2d2d3d',
+        wallBorderColor: '#ffaa00', // Industrial safety orange
         ambientParticles: 'dust',
-        hasBlueprintStyle: true,
+        isIndustrial: true,
     },
 };
 
-// --- PRODUCTION (Medium) ---
-// Server farm with vertical rack aisles
+// --- PRODUCTION (Medium) -> "Datacenter Core" Style ---
+// Structured server farm, tight corridors, destructible racks
+// Retains the Blue/Cyan palette user liked
 const PRODUCTION_WALLS: Wall[] = [
-    // Aisle 1
-    { x: 600, y: 200, w: 80, h: 1200 },
-    { x: 600, y: 1600, w: 80, h: 1200 },
-    // Aisle 2
-    { x: 1200, y: 400, w: 80, h: 1400 },
-    { x: 1200, y: 2000, w: 80, h: 1000 },
-    // Aisle 3
-    { x: 1800, y: 200, w: 80, h: 1000 },
-    { x: 1800, y: 1400, w: 80, h: 1600 },
-    // Aisle 4
-    { x: 2400, y: 600, w: 80, h: 1200 },
-    { x: 2400, y: 2000, w: 80, h: 800 },
-    // Aisle 5
-    { x: 3000, y: 200, w: 80, h: 1400 },
-    { x: 3000, y: 1800, w: 80, h: 1200 },
-    // Horizontal connectors
-    { x: 200, y: 1500, w: 400, h: 60 },
-    { x: 3400, y: 1500, w: 400, h: 60 },
+    // Main Server Aisles - Vertical
+    { x: 600, y: 400, w: 60, h: 800, type: 'server' },
+    { x: 600, y: 1400, w: 60, h: 800, type: 'server' },
+
+    { x: 3340, y: 400, w: 60, h: 800, type: 'server' },
+    { x: 3340, y: 1400, w: 60, h: 800, type: 'server' },
+
+    // Central Hub - Hardened Glass Walls
+    { x: 1500, y: 1500, w: 1000, h: 40, type: 'glass' }, // Horizontal bar
+    { x: 1500, y: 2460, w: 1000, h: 40, type: 'glass' },
+
+    // Scattered Data Banks
+    { x: 1200, y: 800, w: 100, h: 100, type: 'server' },
+    { x: 2700, y: 800, w: 100, h: 100, type: 'server' },
+    { x: 1200, y: 3200, w: 100, h: 100, type: 'server' },
+    { x: 2700, y: 3200, w: 100, h: 100, type: 'server' },
+
+    // Large Perimeter Blocks (Out of bounds feel)
+    { x: 0, y: 0, w: 400, h: 400, type: 'wall' },
+    { x: 3600, y: 0, w: 400, h: 400, type: 'wall' },
 ];
 
-// Slow zones (cooling vents) for Production
 const PRODUCTION_HAZARDS: HazardZone[] = [
-    // Cooling vent zones - slow player and enemies
-    { x: 800, y: 800, w: 300, h: 300, type: 'slow', slowMultiplier: 0.5, color: 'rgba(0, 200, 255, 0.3)', pulseSpeed: 2 },
-    { x: 2200, y: 1200, w: 300, h: 300, type: 'slow', slowMultiplier: 0.5, color: 'rgba(0, 200, 255, 0.3)', pulseSpeed: 2 },
-    { x: 1400, y: 2800, w: 400, h: 200, type: 'slow', slowMultiplier: 0.4, color: 'rgba(0, 200, 255, 0.3)', pulseSpeed: 2.5 },
-    { x: 3200, y: 600, w: 250, h: 350, type: 'slow', slowMultiplier: 0.5, color: 'rgba(0, 200, 255, 0.3)', pulseSpeed: 2 },
+    // Cooling Vents (Slow)
+    { x: 800, y: 800, w: 200, h: 200, type: 'slow', slowMultiplier: 0.5, color: 'rgba(0, 255, 255, 0.2)' },
+    { x: 3000, y: 800, w: 200, h: 200, type: 'slow', slowMultiplier: 0.5, color: 'rgba(0, 255, 255, 0.2)' },
+    { x: 1900, y: 1900, w: 200, h: 200, type: 'slow', slowMultiplier: 0.5, color: 'rgba(0, 255, 255, 0.2)' },
+
+    // Energy Leaks (Damage)
+    { x: 1950, y: 400, w: 100, h: 100, type: 'damage', damagePerSecond: 10, color: 'rgba(255, 50, 50, 0.3)', pulseSpeed: 5 },
+];
+
+const PRODUCTION_DECORATIONS: Decoration[] = [
+    // Cables running on floor
+    { x: 630, y: 0, w: 10, h: 4000, type: 'cable', color: 'rgba(0, 200, 255, 0.3)' },
+    { x: 3370, y: 0, w: 10, h: 4000, type: 'cable', color: 'rgba(0, 200, 255, 0.3)' },
+    { x: 0, y: 2000, w: 4000, h: 10, type: 'cable', color: 'rgba(0, 200, 255, 0.3)' },
 ];
 
 export const MAP_PRODUCTION: MapConfig = {
@@ -117,49 +166,48 @@ export const MAP_PRODUCTION: MapConfig = {
     height: 4000,
     walls: PRODUCTION_WALLS,
     hazards: PRODUCTION_HAZARDS,
+    decorations: PRODUCTION_DECORATIONS,
     theme: {
-        backgroundColor: '#050510',
-        gridColor: 'rgba(0, 255, 200, 0.05)',
-        wallColor: '#1a1a2e',
-        wallBorderColor: '#00ffcc',
+        backgroundColor: '#050a14', // Deep Server Blue
+        gridColor: 'rgba(0, 240, 255, 0.08)',
+        wallColor: '#101825',
+        wallBorderColor: '#00ccff', // Cyan Neon
         ambientParticles: 'digital',
-        hasBlinkingLights: true,
+        isDatacenter: true,
     },
 };
 
-// --- KERNEL PANIC (Hard) ---
-// Chaotic debris layout
+// --- KERNEL PANIC (Hard) -> "Void Glitch" Style ---
+// Broken reality, floating islands feel, corrupted red/purple
 const KERNEL_PANIC_WALLS: Wall[] = [
-    // Scattered debris blocks
-    { x: 300, y: 500, w: 150, h: 80 },
-    { x: 800, y: 200, w: 100, h: 200 },
-    { x: 1200, y: 700, w: 200, h: 100 },
-    { x: 500, y: 1100, w: 80, h: 250 },
-    { x: 1500, y: 400, w: 120, h: 120 },
-    { x: 2000, y: 800, w: 180, h: 80 },
-    { x: 1800, y: 1200, w: 100, h: 180 },
-    { x: 400, y: 1800, w: 200, h: 100 },
-    { x: 1000, y: 1500, w: 150, h: 150 },
-    { x: 2200, y: 1700, w: 120, h: 200 },
-    { x: 700, y: 2200, w: 180, h: 80 },
-    { x: 1600, y: 2000, w: 100, h: 160 },
-    { x: 2500, y: 500, w: 80, h: 300 },
-    { x: 2400, y: 2400, w: 200, h: 100 },
-    { x: 1200, y: 2500, w: 150, h: 80 },
+    // Glitch Blocks - randomly scattered, some breakable
+    { x: 500, y: 500, w: 150, h: 150, type: 'glitch' },
+    { x: 2500, y: 500, w: 150, h: 150, type: 'glitch' },
+    { x: 500, y: 2500, w: 150, h: 150, type: 'glitch' },
+    { x: 2500, y: 2500, w: 150, h: 150, type: 'glitch' },
+
+    // Central Chaos
+    { x: 1300, y: 1300, w: 400, h: 50, type: 'glitch' },
+    { x: 1300, y: 1650, w: 400, h: 50, type: 'glitch' },
+
+    // Corruption barriers
+    { x: 200, y: 1000, w: 50, h: 1000, type: 'glitch' },
+    { x: 2750, y: 1000, w: 50, h: 1000, type: 'glitch' },
 ];
 
-// Hazard zones for Kernel Panic - damage zones and teleporters
 const KERNEL_PANIC_HAZARDS: HazardZone[] = [
-    // Glitch damage zones (corrupted memory)
-    { x: 600, y: 600, w: 200, h: 200, type: 'damage', damagePerSecond: 8, color: 'rgba(255, 0, 100, 0.4)', pulseSpeed: 4 },
-    { x: 1400, y: 900, w: 250, h: 150, type: 'damage', damagePerSecond: 10, color: 'rgba(255, 0, 100, 0.4)', pulseSpeed: 5 },
-    { x: 2100, y: 1400, w: 200, h: 200, type: 'damage', damagePerSecond: 8, color: 'rgba(255, 0, 100, 0.4)', pulseSpeed: 4 },
-    { x: 800, y: 1900, w: 300, h: 150, type: 'damage', damagePerSecond: 12, color: 'rgba(255, 0, 100, 0.5)', pulseSpeed: 6 },
-    // Teleporter zones (corrupted sectors)
-    { x: 200, y: 200, w: 150, h: 150, type: 'teleport', color: 'rgba(150, 0, 255, 0.5)', pulseSpeed: 3 },
-    { x: 2650, y: 200, w: 150, h: 150, type: 'teleport', color: 'rgba(150, 0, 255, 0.5)', pulseSpeed: 3 },
-    { x: 200, y: 2650, w: 150, h: 150, type: 'teleport', color: 'rgba(150, 0, 255, 0.5)', pulseSpeed: 3 },
-    { x: 2650, y: 2650, w: 150, h: 150, type: 'teleport', color: 'rgba(150, 0, 255, 0.5)', pulseSpeed: 3 },
+    // Large Corruption Zones
+    { x: 800, y: 800, w: 300, h: 300, type: 'damage', damagePerSecond: 15, color: 'rgba(255, 0, 80, 0.25)', pulseSpeed: 8 },
+    { x: 1900, y: 1900, w: 300, h: 300, type: 'damage', damagePerSecond: 15, color: 'rgba(255, 0, 80, 0.25)', pulseSpeed: 8 },
+
+    // Random Teleporters
+    { x: 300, y: 300, w: 100, h: 100, type: 'teleport', color: 'rgba(180, 0, 255, 0.4)' },
+    { x: 2600, y: 2600, w: 100, h: 100, type: 'teleport', color: 'rgba(180, 0, 255, 0.4)' },
+];
+
+const KERNEL_PANIC_DECORATIONS: Decoration[] = [
+    { x: 1500, y: 1500, w: 800, h: 800, type: 'crack', color: 'rgba(255, 0, 50, 0.1)' },
+    { x: 500, y: 2000, w: 300, h: 300, type: 'symbol', color: 'rgba(100, 0, 255, 0.1)', rotation: 0.5 },
 ];
 
 export const MAP_KERNEL_PANIC: MapConfig = {
@@ -169,13 +217,14 @@ export const MAP_KERNEL_PANIC: MapConfig = {
     height: 3000,
     walls: KERNEL_PANIC_WALLS,
     hazards: KERNEL_PANIC_HAZARDS,
+    decorations: KERNEL_PANIC_DECORATIONS,
     theme: {
-        backgroundColor: '#100505',
-        gridColor: 'rgba(255, 0, 100, 0.06)',
-        wallColor: '#2a0a0a',
-        wallBorderColor: '#ff0055',
-        ambientParticles: 'ember',
-        hasGlitchEffect: true,
+        backgroundColor: '#05101a', // Deep Navy/Black
+        gridColor: 'rgba(0, 255, 255, 0.1)',
+        wallColor: '#0a1f2f',
+        wallBorderColor: '#00ffff', // Neon Cyan
+        ambientParticles: 'digital',
+        isGlitch: true,
     },
 };
 
@@ -247,12 +296,20 @@ export function resolveWallCollisions(
 
 /**
  * Check if a point is inside any wall (for bullet collision).
+ * Returns the wall hit or null.
  */
-export function pointInWalls(px: number, py: number, walls: Wall[]): boolean {
+export function getWallAtPoint(px: number, py: number, walls: Wall[]): Wall | null {
     for (const wall of walls) {
         if (px >= wall.x && px <= wall.x + wall.w && py >= wall.y && py <= wall.y + wall.h) {
-            return true;
+            return wall;
         }
     }
-    return false;
+    return null;
+}
+
+/**
+ * Legacy support for simple boolean check
+ */
+export function pointInWalls(px: number, py: number, walls: Wall[]): boolean {
+    return getWallAtPoint(px, py, walls) !== null;
 }
