@@ -489,24 +489,14 @@ export class Engine {
                 this.ctx.beginPath(); this.ctx.moveTo(startX, y); this.ctx.lineTo(endX, y); this.ctx.stroke();
             }
             this.ctx.shadowBlur = 0;
-        } else if (theme.isGlitch) {
-            // Glitch: Broken grid
+        } else {
+            // Default / Void: Clean solid grid
             this.ctx.strokeStyle = theme.gridColor;
             for (let x = startX; x <= endX; x += gridSize) {
-                if (Math.random() > 0.1) {
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(x, startY);
-                    this.ctx.lineTo(x, endY + (Math.random() * 20));
-                    this.ctx.stroke();
-                }
+                this.ctx.beginPath(); this.ctx.moveTo(x, startY); this.ctx.lineTo(x, endY); this.ctx.stroke();
             }
             for (let y = startY; y <= endY; y += gridSize) {
-                if (Math.random() > 0.1) {
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(startX, y);
-                    this.ctx.lineTo(endX, y);
-                    this.ctx.stroke();
-                }
+                this.ctx.beginPath(); this.ctx.moveTo(startX, y); this.ctx.lineTo(endX, y); this.ctx.stroke();
             }
         }
 
@@ -627,16 +617,6 @@ export class Engine {
                 this.ctx.lineWidth = 1;
                 this.ctx.strokeRect(wall.x, wall.y, wall.w, wall.h);
 
-            } else if (wall.type === 'glitch') {
-                // Glitching Block
-                const shiftX = Math.random() * 4 - 2;
-                this.ctx.fillStyle = wallColor;
-                this.ctx.fillRect(wall.x + shiftX, wall.y, wall.w, wall.h);
-
-                this.ctx.strokeStyle = Math.random() > 0.5 ? '#ff0055' : '#7700ff';
-                this.ctx.lineWidth = 2;
-                this.ctx.strokeRect(wall.x - shiftX, wall.y, wall.w, wall.h);
-
             } else if (wall.type === 'glass') {
                 // Glass Barrier
                 this.ctx.fillStyle = 'rgba(200, 255, 255, 0.15)';
@@ -686,12 +666,6 @@ export class Engine {
             this.ctx.fillStyle = 'rgba(0, 255, 255, 0.02)';
             for (let y = 0; y < height; y += 4) {
                 this.ctx.fillRect(0, y, width, 1);
-            }
-        } else if (theme.isGlitch) {
-            // Chromatic Abberation Overlay
-            if (Math.random() > 0.95) {
-                this.ctx.fillStyle = 'rgba(255, 0, 0, 0.05)';
-                this.ctx.fillRect(Math.random() * 10, 0, width, height);
             }
         }
 

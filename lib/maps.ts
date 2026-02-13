@@ -177,54 +177,55 @@ export const MAP_PRODUCTION: MapConfig = {
     },
 };
 
-// --- KERNEL PANIC (Hard) -> "Void Glitch" Style ---
-// Broken reality, floating islands feel, corrupted red/purple
+// --- KERNEL PANIC (Hard) -> "The Void" Style ---
+// Deep space, abstract geometry, stable but ominous
 const KERNEL_PANIC_WALLS: Wall[] = [
-    // Glitch Blocks - randomly scattered, some breakable
-    { x: 500, y: 500, w: 150, h: 150, type: 'glitch' },
-    { x: 2500, y: 500, w: 150, h: 150, type: 'glitch' },
-    { x: 500, y: 2500, w: 150, h: 150, type: 'glitch' },
-    { x: 2500, y: 2500, w: 150, h: 150, type: 'glitch' },
+    // Void Blocks - stable, heavy geometry
+    { x: 500, y: 500, w: 150, h: 150, type: 'wall' },
+    { x: 2500, y: 500, w: 150, h: 150, type: 'wall' },
+    { x: 500, y: 2500, w: 150, h: 150, type: 'wall' },
+    { x: 2500, y: 2500, w: 150, h: 150, type: 'wall' },
 
-    // Central Chaos
-    { x: 1300, y: 1300, w: 400, h: 50, type: 'glitch' },
-    { x: 1300, y: 1650, w: 400, h: 50, type: 'glitch' },
+    // Central Monoliths
+    { x: 1300, y: 1300, w: 400, h: 50, type: 'wall' },
+    { x: 1300, y: 1650, w: 400, h: 50, type: 'wall' },
 
-    // Corruption barriers
-    { x: 200, y: 1000, w: 50, h: 1000, type: 'glitch' },
-    { x: 2750, y: 1000, w: 50, h: 1000, type: 'glitch' },
+    // Outer Barriers
+    { x: 200, y: 1000, w: 50, h: 1000, type: 'wall' },
+    { x: 2750, y: 1000, w: 50, h: 1000, type: 'wall' },
 ];
 
 const KERNEL_PANIC_HAZARDS: HazardZone[] = [
-    // Large Corruption Zones
-    { x: 800, y: 800, w: 300, h: 300, type: 'damage', damagePerSecond: 15, color: 'rgba(255, 0, 80, 0.25)', pulseSpeed: 8 },
-    { x: 1900, y: 1900, w: 300, h: 300, type: 'damage', damagePerSecond: 15, color: 'rgba(255, 0, 80, 0.25)', pulseSpeed: 8 },
+    // Void Zones (Damage)
+    { x: 800, y: 800, w: 300, h: 300, type: 'damage', damagePerSecond: 15, color: 'rgba(140, 0, 255, 0.25)', pulseSpeed: 2 },
+    { x: 1900, y: 1900, w: 300, h: 300, type: 'damage', damagePerSecond: 15, color: 'rgba(140, 0, 255, 0.25)', pulseSpeed: 2 },
 
     // Random Teleporters
-    { x: 300, y: 300, w: 100, h: 100, type: 'teleport', color: 'rgba(180, 0, 255, 0.4)' },
-    { x: 2600, y: 2600, w: 100, h: 100, type: 'teleport', color: 'rgba(180, 0, 255, 0.4)' },
+    { x: 300, y: 300, w: 100, h: 100, type: 'teleport', color: 'rgba(0, 255, 200, 0.3)' },
+    { x: 2600, y: 2600, w: 100, h: 100, type: 'teleport', color: 'rgba(0, 255, 200, 0.3)' },
 ];
 
 const KERNEL_PANIC_DECORATIONS: Decoration[] = [
-    { x: 1500, y: 1500, w: 800, h: 800, type: 'crack', color: 'rgba(255, 0, 50, 0.1)' },
-    { x: 500, y: 2000, w: 300, h: 300, type: 'symbol', color: 'rgba(100, 0, 255, 0.1)', rotation: 0.5 },
+    // Abstract geometry instead of cracks
+    { x: 1500, y: 1500, w: 800, h: 800, type: 'symbol', color: 'rgba(100, 0, 255, 0.05)', rotation: 0 },
+    { x: 500, y: 2000, w: 300, h: 300, type: 'symbol', color: 'rgba(100, 0, 255, 0.05)', rotation: 0.78 },
 ];
 
 export const MAP_KERNEL_PANIC: MapConfig = {
     id: 'kernel_panic',
-    name: 'KERNEL_PANIC',
+    name: 'THE_VOID',
     width: 3000,
     height: 3000,
     walls: KERNEL_PANIC_WALLS,
     hazards: KERNEL_PANIC_HAZARDS,
     decorations: KERNEL_PANIC_DECORATIONS,
     theme: {
-        backgroundColor: '#05101a', // Deep Navy/Black
-        gridColor: 'rgba(0, 255, 255, 0.1)',
-        wallColor: '#0a1f2f',
-        wallBorderColor: '#00ffff', // Neon Cyan
-        ambientParticles: 'digital',
-        isGlitch: true,
+        backgroundColor: '#050010', // Deep Violet/Black
+        gridColor: 'rgba(140, 0, 255, 0.1)',
+        wallColor: '#1a0525', // Dark Purple
+        wallBorderColor: '#9d00ff', // Neon Purple
+        ambientParticles: 'ember', // Floating embers (maybe purple?)
+        // remove isGlitch
     },
 };
 

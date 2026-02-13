@@ -51,15 +51,28 @@ export default function UpgradeMenu({ onSelect, player }: UpgradeMenuProps) {
         if (!u.evoName) return false;
         const nextLevel = u.count + 1;
         if (u.id === 'repulsion') return nextLevel === 5;
+        if (u.id === 'critChance') return nextLevel === 3; // Crit Chance "Evo" at level 3
         return nextLevel > 0 && nextLevel % 5 === 0;
     };
 
     const getEvoProgress = (u: Upgrade) => {
         if (!u.evoName) return { current: 0, next: 0, percent: 0 };
-        const nextEvo = u.id === 'repulsion' ? 5 : (Math.floor(u.count / 5) + 1) * 5;
-        const prevEvo = u.id === 'repulsion' ? 0 : Math.floor(u.count / 5) * 5;
+
+        let nextEvo = (Math.floor(u.count / 5) + 1) * 5;
+        let prevEvo = Math.floor(u.count / 5) * 5;
+
+        // Custom logic for non-standard evos
+        if (u.id === 'repulsion') {
+            nextEvo = 5;
+            prevEvo = 0;
+        } else if (u.id === 'critChance') {
+            nextEvo = 3;
+            prevEvo = 0;
+        }
+
         const progress = u.count - prevEvo;
         const needed = nextEvo - prevEvo;
+
         return {
             current: u.count,
             next: nextEvo,
@@ -173,7 +186,7 @@ export default function UpgradeMenu({ onSelect, player }: UpgradeMenuProps) {
                                     </p>
 
                                     {/* Evolution Progress */}
-                                    {u.evoName && !evo && (
+                                    {u.evoName && !evo && evoProgress.next > u.count && (
                                         <div className="flex flex-col items-start md:items-center gap-1.5 mt-2 md:mt-3 w-full md:border-t md:border-white/5 md:pt-3">
                                             <div className="flex items-center justify-between w-full">
                                                 <p className="text-[9px] md:text-[10px] text-white/40 font-medium uppercase tracking-wider">
