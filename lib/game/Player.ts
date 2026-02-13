@@ -138,7 +138,7 @@ export class Player {
     levelUp() {
         this.xp -= this.xpToNext;
         this.level++;
-        this.xpToNext = Math.floor(this.xpToNext * 1.15) + 25;
+        this.xpToNext = Math.floor(this.xpToNext * 1.19) + 35;
         this.hp = Math.min(this.hp + (this.maxHp * 0.3), this.maxHp);
 
         this.recalculateStats();

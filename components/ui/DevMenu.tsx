@@ -9,9 +9,10 @@ import { GameIcon } from './GameIcons';
 interface DevMenuProps {
     onStart: (config: { level: number; upgrades: Record<string, number>; startTime?: number; difficulty?: 'easy' | 'medium' | 'hard'; powerups?: Record<string, boolean> }) => void;
     onClose: () => void;
+    onOpenBalanceTester: () => void;
 }
 
-export default function DevMenu({ onStart, onClose }: DevMenuProps) {
+export default function DevMenu({ onStart, onClose, onOpenBalanceTester }: DevMenuProps) {
     const [level, setLevel] = useState(1);
     const [startTime, setStartTime] = useState(0);
     const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy');
@@ -358,10 +359,19 @@ export default function DevMenu({ onStart, onClose }: DevMenuProps) {
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 md:p-5 border-t border-white/5 bg-white/[0.02] shrink-0">
+                <div className="p-4 md:p-5 border-t border-white/5 bg-white/[0.02] shrink-0 flex gap-3">
+                    <button
+                        onClick={onOpenBalanceTester}
+                        className="flex-1 py-3 md:py-4 rounded-xl font-bold text-xs md:text-sm uppercase tracking-wider
+                            bg-white/5 border-2 border-white/10 text-white/60
+                            hover:bg-white/10 hover:text-white hover:border-white/20
+                            transition-all duration-300 flex items-center justify-center gap-2"
+                    >
+                        <span>⚖️</span> Balance Tester
+                    </button>
                     <button
                         onClick={handleStart}
-                        className="w-full py-3 md:py-4 rounded-xl font-black text-base md:text-lg uppercase tracking-wider
+                        className="flex-[2] py-3 md:py-4 rounded-xl font-black text-base md:text-lg uppercase tracking-wider
                             bg-gradient-to-r from-[#00ffcc] to-[#00ddaa] border-2 border-[#00ffcc]/50 text-black
                             hover:shadow-[0_0_40px_rgba(0,255,204,0.4)] hover:border-[#00ffcc]
                             transition-all duration-300 flex items-center justify-center gap-2"

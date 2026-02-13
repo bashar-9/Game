@@ -82,9 +82,9 @@ export const POWERUP_INFO = {
 };
 
 export const DIFFICULTY_SETTINGS = {
-    easy: { hpMult: 1.0, dmgMult: 1.0, spawnMult: 1.0, playerHpBonus: 0 }, // Was Normal
-    medium: { hpMult: 2.2, dmgMult: 1.7, spawnMult: 1.5, playerHpBonus: 0 }, // Was Hard
-    hard: { hpMult: 3.5, dmgMult: 2.5, spawnMult: 2.0, playerHpBonus: 0 } // New Hard Mode
+    easy: { hpMult: 1.5, dmgMult: 1.2, spawnMult: 1.0, playerHpBonus: 0 }, // Buffed from 1.0/1.0
+    medium: { hpMult: 3.5, dmgMult: 2.5, spawnMult: 1.5, playerHpBonus: 0 }, // Buffed from 2.2/1.7
+    hard: { hpMult: 6.0, dmgMult: 4.0, spawnMult: 3.0, playerHpBonus: 0 } // INSANE MODE: Buffed from 3.5/2.5
 };
 
 export const BASE_STATS = {

@@ -10,13 +10,14 @@ import UpgradeMenu from '@/components/ui/UpgradeMenu';
 import PauseMenu from '@/components/ui/PauseMenu';
 // Import DevMenu properly
 import DevMenu from '@/components/ui/DevMenu';
+import BalanceTester from '@/components/ui/BalanceTester';
 import { useGameStore } from '@/store/useGameStore';
 import { Engine } from '@/lib/game/Engine';
 import { resetUpgrades } from '@/lib/config';
 
 export default function Home() {
 
-  const [gameState, setGameState] = useState<'start' | 'playing'>('start');
+  const [gameState, setGameState] = useState<'start' | 'playing' | 'balanceTester'>('start');
   const [diffMode, setDiffMode] = useState<'easy' | 'medium' | 'hard'>('easy');
   const [showDevMenu, setShowDevMenu] = useState(false);
   const engineRef = useRef<Engine | null>(null);
@@ -107,9 +108,17 @@ export default function Home() {
                 setShowDevMenu(false);
               }}
               onClose={() => setShowDevMenu(false)}
+              onOpenBalanceTester={() => {
+                setShowDevMenu(false);
+                setGameState('balanceTester');
+              }}
             />
           )}
         </>
+      )}
+
+      {gameState === 'balanceTester' && (
+        <BalanceTester onBack={() => setGameState('start')} />
       )}
 
       {gameState === 'playing' && (
