@@ -15,6 +15,8 @@ import { useGameStore } from '@/store/useGameStore';
 import { Engine } from '@/lib/game/Engine';
 import { resetUpgrades } from '@/lib/config';
 
+const IS_DEV = process.env.NODE_ENV === 'development';
+
 export default function Home() {
 
   const [gameState, setGameState] = useState<'start' | 'playing' | 'balanceTester'>('start');
@@ -117,7 +119,7 @@ export default function Home() {
         </>
       )}
 
-      {gameState === 'balanceTester' && (
+      {IS_DEV && gameState === 'balanceTester' && (
         <BalanceTester onBack={() => setGameState('start')} />
       )}
 

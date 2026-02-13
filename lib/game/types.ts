@@ -17,6 +17,7 @@ export interface IPlayer {
     pickupRange: number;
     regen: number;
     repulsionLevel: number;
+    ionOrbsLevel?: number;
     modifiers: { damage: number; attackSpeed: number };
     critChance: number;
     critMultiplier: number;

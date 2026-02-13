@@ -360,15 +360,17 @@ export default function DevMenu({ onStart, onClose, onOpenBalanceTester }: DevMe
 
                 {/* Footer */}
                 <div className="p-4 md:p-5 border-t border-white/5 bg-white/[0.02] shrink-0 flex gap-3">
-                    <button
-                        onClick={onOpenBalanceTester}
-                        className="flex-1 py-3 md:py-4 rounded-xl font-bold text-xs md:text-sm uppercase tracking-wider
-                            bg-white/5 border-2 border-white/10 text-white/60
-                            hover:bg-white/10 hover:text-white hover:border-white/20
-                            transition-all duration-300 flex items-center justify-center gap-2"
-                    >
-                        <span>⚖️</span> Balance Tester
-                    </button>
+                    {process.env.NODE_ENV === 'development' && (
+                        <button
+                            onClick={onOpenBalanceTester}
+                            className="flex-1 py-3 md:py-4 rounded-xl font-bold text-xs md:text-sm uppercase tracking-wider
+                                bg-white/5 border-2 border-white/10 text-white/60
+                                hover:bg-white/10 hover:text-white hover:border-white/20
+                                transition-all duration-300 flex items-center justify-center gap-2"
+                        >
+                            <span>⚖️</span> Balance Tester
+                        </button>
+                    )}
                     <button
                         onClick={handleStart}
                         className="flex-[2] py-3 md:py-4 rounded-xl font-black text-base md:text-lg uppercase tracking-wider

@@ -15,6 +15,7 @@ import { Camera } from './Camera';
 import { MAPS_BY_DIFFICULTY, MapConfig, Wall, HazardZone, resolveWallCollisions, pointInWalls, getWallAtPoint } from '../maps';
 import { SpatialHash } from './SpatialHash';
 
+
 export class Engine {
     ctx: CanvasRenderingContext2D;
     canvas: HTMLCanvasElement;

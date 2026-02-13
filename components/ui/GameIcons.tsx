@@ -511,6 +511,54 @@ function FireIcon({ size = 24, className, style }: IconProps) {
     );
 }
 
+/** ion_orbs / ATOM_ORBIT — orbiting particles around nucleus, cyan/blue */
+function AtomOrbit({ size = 24, className, style }: IconProps) {
+    const id = 'ao' + React.useId().replace(/:/g, '');
+    return (
+        <svg width={size} height={size} viewBox="0 0 32 32" fill="none" className={className} style={style}>
+            <defs>
+                <radialGradient id={`${id}g`} cx="50%" cy="50%">
+                    <stop offset="0%" stopColor="#00ffff" />
+                    <stop offset="100%" stopColor="#0066ff" />
+                </radialGradient>
+                <filter id={`${id}gl`}><feGaussianBlur stdDeviation="1.2" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+            </defs>
+            <g filter={`url(#${id}gl)`}>
+                {/* Nucleus */}
+                <circle cx="16" cy="16" r="3.5" fill={`url(#${id}g)`} />
+                <circle cx="16" cy="16" r="7" stroke="#00ffff" strokeWidth="1" opacity="0.25" />
+                {/* Orbital Paths */}
+                <ellipse cx="16" cy="16" rx="11" ry="3.5" transform="rotate(45 16 16)" stroke="#0088ff" strokeWidth="1.5" opacity="0.6" />
+                <ellipse cx="16" cy="16" rx="11" ry="3.5" transform="rotate(-45 16 16)" stroke="#0088ff" strokeWidth="1.5" opacity="0.6" />
+                {/* Electrons */}
+                <circle cx="23.5" cy="8.5" r="1.8" fill="#00ffff" />
+                <circle cx="8.5" cy="23.5" r="1.8" fill="#00ffff" />
+            </g>
+        </svg>
+    );
+}
+
+
+/** main_gun / CROSSHAIR — targeting reticle, white/gray */
+function Crosshair({ size = 24, className, style }: IconProps) {
+    const id = 'ch' + React.useId().replace(/:/g, '');
+    return (
+        <svg width={size} height={size} viewBox="0 0 32 32" fill="none" className={className} style={style}>
+            <defs>
+                <filter id={`${id}gl`}><feGaussianBlur stdDeviation="1" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+            </defs>
+            <g filter={`url(#${id}gl)`}>
+                <circle cx="16" cy="16" r="8" stroke="white" strokeWidth="2" opacity="0.8" />
+                <circle cx="16" cy="16" r="3" fill="white" opacity="0.6" />
+                <line x1="16" y1="4" x2="16" y2="12" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                <line x1="16" y1="20" x2="16" y2="28" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                <line x1="4" y1="16" x2="12" y2="16" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                <line x1="20" y1="16" x2="28" y2="16" stroke="white" strokeWidth="2" strokeLinecap="round" />
+            </g>
+        </svg>
+    );
+}
+
 
 // ─── ICON MAP ────────────────────────────────────────────────────
 
@@ -536,6 +584,8 @@ const ICON_COMPONENTS: Record<string, React.FC<IconProps>> = {
     timer: TimerIcon,
     skull: SkullIcon,
     fire: FireIcon,
+    atom_orbit: AtomOrbit,
+    crosshair: Crosshair,
 };
 
 /**
@@ -574,4 +624,6 @@ export {
     TimerIcon,
     SkullIcon,
     FireIcon,
+    AtomOrbit,
+    Crosshair,
 };

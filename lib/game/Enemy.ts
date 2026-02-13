@@ -4,6 +4,7 @@ import { IPlayer } from './types';
 import { createNeonSprite, CACHED_SPRITES } from './AssetCache';
 import { SpatialHash } from './SpatialHash';
 
+
 export class Enemy {
     x!: number;
     y!: number;
@@ -75,6 +76,8 @@ export class Enemy {
         this.maxHp = this.hp;
         this.killedByShield = false;
     }
+
+
 
     takeHit(amount: number, isCrit: boolean = false) {
         this.hp -= amount;

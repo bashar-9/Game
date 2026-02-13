@@ -6,6 +6,7 @@ import { InputState } from './InputManager';
 import { soundManager } from './SoundManager';
 import { createNeonSprite, CACHED_SPRITES } from './AssetCache';
 
+
 export interface PlayerCallbacks {
     onUpdateStats: (hp: number, maxHp: number, xp: number, xpToNext: number, level: number, damage: number) => void;
     onUpdateActivePowerups: (active: Record<string, number>, maxDurations: Record<string, number>) => void;
@@ -133,7 +134,7 @@ export class Player {
         this.slowMultiplier = multiplier;
     }
 
-    // ... (Keep existing update method)
+
 
     levelUp() {
         this.xp -= this.xpToNext;
@@ -144,6 +145,12 @@ export class Player {
         this.recalculateStats();
         this.callbacks.onLevelUp();
     }
+
+    // ... (existing properties)
+    ionOrbsLevel: number = 0;
+    ionOrbsAngle: number = 0;
+
+    // ... (existing helper methods)
 
     update(input: InputState, enemies: Enemy[], spawnBullet: (x: number, y: number, vx: number, vy: number, damage: number, pierce: number, size: number, isCrit: boolean) => void, frameCount: number, worldWidth: number, worldHeight: number, delta: number = 1, walls: { x: number, y: number, w: number, h: number }[] = []) {
         // Regen - use accumulator for frame-rate independence
@@ -202,6 +209,9 @@ export class Player {
         // Repulsion Field
         if (this.repulsionLevel > 0) this.applyRepulsionField(enemies, frameCount, delta);
 
+        // Ion Orbs
+        if (this.ionOrbsLevel && this.ionOrbsLevel > 0) this.updateIonOrbs(enemies, frameCount, delta);
+
         if (this.invincibilityTimer > 0) this.invincibilityTimer -= delta;
 
         // Update Powerups
@@ -231,12 +241,24 @@ export class Player {
         const stats = BASE_STATS.player;
         const levelCapArea = Math.min(this.repulsionLevel, 8); // Buffed: Cap raised to 8 (was 4)
         const radiusGrowth = levelCapArea * 20;
+        // Synergy: Range scales with Bullet Size
+        const sizeBonus = (this.bulletSize || 0) * 4;
         const baseRange = CONFIG.IS_MOBILE ? stats.repulsionBaseRangeMobile : stats.repulsionBaseRange;
-        const range = baseRange + radiusGrowth;
+        const range = baseRange + radiusGrowth + sizeBonus;
 
         // Buffed: Force scales by 5% per level (Base * (1 + 0.05 * Level))
         const forceMult = 1 + (this.repulsionLevel * 0.05);
         const forceBase = stats.repulsionForce * forceMult;
+
+        // "Juggernaut" Synergy: Damage scales with Max HP
+        const hpBonusDamage = Math.floor(this.maxHp * 0.05);
+
+        // "Juggernaut" Synergy: Pulse Rate scales with Regen
+        // Base rate 15 frames. Fast regen = faster ticks.
+        // Formula: 15 / (1 + Regen * 0.05). If Regen=20 -> 1 + 1 = 2 -> 7.5 frames (Double speed)
+        const tickRate = Math.max(5, Math.floor(15 / (1 + this.regen * 0.05)));
+
+        const shouldDamage = frameCount % tickRate === 0;
 
         for (const e of enemies) {
             const dx = e.x - this.x;
@@ -253,13 +275,79 @@ export class Player {
                 e.pushX += nx * effectiveForce;
                 e.pushY += ny * effectiveForce;
 
-                // Burn damage every ~15 frames (use frame count for consistency)
-                if (frameCount % 15 === 0) {
-                    // New Formula: 30% Base + 10% per level (Buffed from 5%)
-                    const burnDmg = Math.max(1, Math.floor(this.damage * (0.30 + (this.repulsionLevel * 0.10))));
-                    e.takeHit(burnDmg);
+                // Burn damage
+                if (shouldDamage) {
+                    // New Formula: 30% Base + 10% per level + HP Bonus
+                    let baseDmg = this.damage * (0.30 + (this.repulsionLevel * 0.10));
+                    let totalDmg = Math.max(1, Math.floor(baseDmg + hpBonusDamage));
+
+                    e.takeHit(totalDmg);
                     if (Math.random() > 0.7) {
                         this.callbacks.onCreateParticles(e.x, e.y, 1, '#ff5500');
+                    }
+                }
+            }
+        }
+    }
+
+    updateIonOrbs(enemies: Enemy[], frameCount: number, delta: number) {
+        // Buffed Count: Start with 2 Orbs at Level 1 (Base 1 + Level 1)
+        // Synergy: +1 Orb per Projectile Count (Base is 1)
+        const count = 1 + (this.ionOrbsLevel || 0) + (this.projectileCount - 1);
+
+        // Synergy: Speed scales with Move Speed
+        // Buffed Speed: 0.10 rad/frame base (was 0.08) -> Even Faster spin
+        const speedMult = this.speed / this.baseSpeed;
+        const orbitSpeed = 0.10 * speedMult * delta;
+        this.ionOrbsAngle += orbitSpeed;
+
+        // Synergy: Size scales with Bullet Size
+        // Buffed Base Size: 12 (was 8) for better visibility
+        const orbSize = 12 + (this.bulletSize * 1.5);
+        // Buffed Radius: Further out to be a mid-sized zone
+        const orbitRadius = this.radius + 100 + (orbSize * 3);
+
+        // REWORK: High Frequency "Damage Ring"
+        // 1. Damage: Scales 25% per level (Base 60% of Player Damage)
+        // Formula: PlayerDmg * (0.60 + (0.25 * Level))
+        const dmgMult = 0.60 + ((this.ionOrbsLevel || 0) * 0.25);
+        const dmg = Math.max(1, Math.floor(this.damage * dmgMult));
+
+        // Tick Rate: Every 2 frames
+        const shouldDamage = frameCount % 2 === 0;
+
+        // Knockback: Constant "Drag" force
+        const knockbackForce = 1.1 + ((this.ionOrbsLevel || 0) * 0.10);
+
+        for (let i = 0; i < count; i++) {
+            const angle = this.ionOrbsAngle + (i * (Math.PI * 2 / count));
+            const ox = this.x + Math.cos(angle) * orbitRadius;
+            const oy = this.y + Math.sin(angle) * orbitRadius;
+
+            if (shouldDamage) {
+                for (const e of enemies) {
+                    const dx = e.x - ox;
+                    const dy = e.y - oy;
+                    const distSq = dx * dx + dy * dy;
+
+                    // Simple circle collision
+                    if (distSq < (orbSize + e.radius) * (orbSize + e.radius)) {
+                        // Apply Kickback (Recoil)
+                        const dist = Math.sqrt(distSq);
+                        if (dist > 0) {
+                            const nx = dx / dist;
+                            const ny = dy / dist;
+                            const impulse = (knockbackForce / e.mass) * delta;
+                            e.pushX += nx * impulse;
+                            e.pushY += ny * impulse;
+                        }
+
+                        e.takeHit(dmg);
+
+                        // Reduce particle spam (only 25% chance per hit)
+                        if (Math.random() < 0.25) {
+                            this.callbacks.onCreateParticles(e.x, e.y, 1, '#00ccff');
+                        }
                     }
                 }
             }
@@ -437,6 +525,43 @@ export class Player {
         return CACHED_SPRITES[key];
     }
 
+    getIonOrbSprite(size: number): HTMLCanvasElement {
+        // Cache by size to handle growing orbs (bucket by integer size)
+        const intSize = Math.floor(size);
+        const key = `ion_orb_${intSize}`;
+        if (CACHED_SPRITES[key]) return CACHED_SPRITES[key];
+
+        const canvasSize = intSize * 4; // Allowance for glow
+        const half = canvasSize / 2;
+
+        CACHED_SPRITES[key] = createNeonSprite(canvasSize, canvasSize, (ctx, w, h) => {
+            ctx.translate(half, half);
+
+            // Core
+            ctx.beginPath();
+            ctx.arc(0, 0, intSize, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#00ccff';
+            ctx.fill();
+
+            // Outer Ring
+            ctx.beginPath();
+            ctx.arc(0, 0, intSize * 0.7, 0, Math.PI * 2);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#00ffff';
+            ctx.stroke();
+
+            // Aura
+            ctx.beginPath();
+            ctx.arc(0, 0, intSize * 1.5, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0, 204, 255, 0.2)';
+            ctx.fill();
+        });
+
+        return CACHED_SPRITES[key];
+    }
+
 
     draw(ctx: CanvasRenderingContext2D, frameCount: number) {
         // Invulnerability Shield Visual
@@ -488,6 +613,29 @@ export class Player {
             ctx.lineWidth = 1;
             ctx.strokeStyle = `rgba(0, 255, 204, ${alpha + 0.2})`;
             ctx.stroke();
+        }
+
+        // Ion Orbs Visual
+        if (this.ionOrbsLevel && this.ionOrbsLevel > 0) {
+            const count = (this.ionOrbsLevel || 0) + (this.projectileCount - 1);
+            const orbSize = 8 + (this.bulletSize * 1.5);
+            const orbitRadius = this.radius + 50 + (orbSize * 2);
+            const sprite = this.getIonOrbSprite(orbSize);
+            const halfSprite = orbSize * 2; // Sprite is roughly 4x radius in cache logic, so half is 2x radius
+
+            for (let i = 0; i < count; i++) {
+                const angle = this.ionOrbsAngle + (i * (Math.PI * 2 / count));
+                const ox = this.x + Math.cos(angle) * orbitRadius;
+                const oy = this.y + Math.sin(angle) * orbitRadius;
+
+                // Trail effect?
+                ctx.save();
+                ctx.translate(ox, oy);
+                // Rotate sprite to face direction of travel? (Tangent)
+                ctx.rotate(angle + Math.PI / 2);
+                ctx.drawImage(sprite, -halfSprite, -halfSprite);
+                ctx.restore();
+            }
         }
 
         ctx.save();

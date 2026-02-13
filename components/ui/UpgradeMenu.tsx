@@ -107,17 +107,38 @@ export default function UpgradeMenu({ onSelect, player }: UpgradeMenuProps) {
                     {options.map((u, index) => {
                         const evo = isEvoReady(u);
                         const evoProgress = getEvoProgress(u);
+                        const isWeapon = u.type === 'weapon';
+
+                        // Logic for "Affected Weapons" on Stat cards
+                        const affectedWeapons = !isWeapon ? UPGRADES_LIST.filter(w =>
+                            w.type === 'weapon' &&
+                            // Show for all weapons, even if not yet acquired (helps with build planning)
+                            w.scalesWith?.includes(u.id)
+                        ) : [];
+
+                        // Always add "Main Gun" if applicable
+                        // Main gun stats: multishot, haste, damage, pierce, size, critChance, critDamage, speed (for weird builds?)
+                        const mainGunStats = ['multishot', 'haste', 'damage', 'pierce', 'size', 'critChance', 'critDamage'];
+                        if (!isWeapon && mainGunStats.includes(u.id)) {
+                            // Virtual "Main Gun" entry for display
+                            affectedWeapons.unshift({ id: 'main_gun', icon: 'crosshair', name: 'MAIN GUN' } as any);
+                        }
+
+                        // Logic for "Synergies" on Weapon cards
+                        const scalingStats = isWeapon && u.scalesWith ? UPGRADES_LIST.filter(s => u.scalesWith?.includes(s.id)) : [];
 
                         return (
                             <div
                                 key={`${u.id}-${rerollKey}`}
                                 className={`
                                     relative overflow-hidden transition-all duration-300 group cursor-pointer 
-                                    flex flex-row md:flex-col items-center md:items-center text-left md:text-center gap-4
-                                    p-4 md:p-6 w-full
+                                    flex flex-col items-center text-center gap-3
+                                    p-4 md:p-5 w-full
                                     ${evo
                                         ? 'bg-gradient-to-br from-amber-500/20 via-yellow-500/10 to-orange-500/20 border-2 border-[#ffd700] shadow-[0_0_40px_rgba(255,215,0,0.3)] rounded-2xl'
-                                        : 'bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-white/10 rounded-xl md:rounded-2xl hover:border-[#00ffcc]/50 hover:shadow-[0_0_30px_rgba(0,255,204,0.15)]'
+                                        : isWeapon
+                                            ? 'bg-gradient-to-br from-[#ff0055]/10 to-[#ff0055]/5 border border-[#ff0055]/30 rounded-xl md:rounded-2xl hover:border-[#ff0055] hover:shadow-[0_0_30px_rgba(255,0,85,0.2)]'
+                                            : 'bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-white/10 rounded-xl md:rounded-2xl hover:border-[#00ffcc]/50 hover:shadow-[0_0_30px_rgba(0,255,204,0.15)]'
                                     }
                                     backdrop-blur-md
                                 `}
@@ -130,46 +151,61 @@ export default function UpgradeMenu({ onSelect, player }: UpgradeMenuProps) {
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
 
                                 {/* Corner accent */}
-                                <div className={`absolute top-0 right-0 w-16 h-16 ${evo ? 'bg-[#ffd700]/20' : 'bg-[#00ffcc]/10'} blur-2xl`} />
+                                <div className={`absolute top-0 right-0 w-16 h-16 ${evo ? 'bg-[#ffd700]/20' : isWeapon ? 'bg-[#ff0055]/10' : 'bg-[#00ffcc]/10'} blur-2xl`} />
+
+                                {/* Header Badge (Weapon/Stat) */}
+                                <div className={`
+                                    absolute top-3 left-3 px-2 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase border
+                                    ${isWeapon
+                                        ? 'bg-[#ff0055]/20 border-[#ff0055]/30 text-[#ff0055]'
+                                        : 'bg-white/5 border-white/10 text-white/30'
+                                    }
+                                `}>
+                                    {isWeapon ? 'WEAPON' : 'UPGRADE'}
+                                </div>
 
                                 {/* Icon */}
                                 <div className={`
-                                    text-6xl md:text-8xl group-hover:scale-110 transition-transform duration-300 shrink-0 
-                                    flex justify-center items-center h-full md:h-auto w-20 md:w-auto
-                                    ${evo ? 'drop-shadow-[0_0_20px_rgba(255,215,0,0.6)]' : 'drop-shadow-[0_0_10px_rgba(0,255,204,0.3)]'}
+                                    mt-2 text-5xl md:text-7xl group-hover:scale-110 transition-transform duration-300 shrink-0 
+                                    flex justify-center items-center w-16 h-16 md:w-20 md:h-20
+                                    ${evo ? 'drop-shadow-[0_0_20px_rgba(255,215,0,0.6)]' : isWeapon ? 'drop-shadow-[0_0_15px_rgba(255,0,85,0.4)]' : 'drop-shadow-[0_0_10px_rgba(0,255,204,0.3)]'}
                                 `}>
                                     <GameIcon id={u.icon} size={undefined} className="w-full h-full" />
                                 </div>
 
                                 {/* Content */}
-                                <div className="flex flex-col gap-1.5 md:gap-2 flex-1 min-w-0 w-full items-start md:items-center">
+                                <div className="flex flex-col gap-1 w-full items-center">
                                     {/* Name */}
                                     <h3 className={`
-                                        text-lg md:text-xl font-bold leading-tight
-                                        ${evo ? 'text-[#ffd700]' : 'text-white group-hover:text-[#00ffcc]'}
+                                        text-lg font-bold leading-tight
+                                        ${evo ? 'text-[#ffd700]' : isWeapon ? 'text-[#ff0055]' : 'text-white group-hover:text-[#00ffcc]'}
                                         transition-colors
                                     `}>
-                                        {evo ? `✦ ${u.evoName}` : u.name}
+                                        {/* User Request: Remove mention of other names for evos */}
+                                        {u.name}
                                     </h3>
 
                                     {/* Level & Stat Badges */}
-                                    <div className="flex flex-row md:flex-col items-center md:items-center gap-2 md:gap-1.5 w-full flex-wrap">
+                                    <div className="flex flex-row items-center justify-center gap-1.5 w-full flex-wrap">
                                         <div className={`
-                                            font-bold text-[10px] md:text-xs tracking-wider uppercase 
-                                            px-2.5 py-1 rounded-lg
+                                            font-bold text-[10px] tracking-wider uppercase 
+                                            px-2 py-0.5 rounded
                                             ${evo
                                                 ? 'bg-[#ffd700] text-black shadow-[0_0_15px_rgba(255,215,0,0.4)]'
                                                 : 'bg-white/10 text-white/70 border border-white/10'
                                             }
                                         `}>
-                                            {evo ? '★ EVOLUTION ★' : `Lvl ${u.count} → ${u.count + 1} / ${u.maxLevel}`}
+                                            {/* Fix: Only say MAXED if actually max level. Otherwise EVOLUTION or Level */}
+                                            {evo ? '★ EVOLUTION ★' : `LVL ${u.count} → ${u.count + 1}`}
                                         </div>
                                         <div className={`
-                                            text-[10px] md:text-xs font-bold tracking-wider uppercase 
-                                            px-2.5 py-1 rounded-lg
+                                            text-[10px] font-bold tracking-wider uppercase 
+                                            px-2 py-0.5 rounded
                                             ${evo
                                                 ? 'bg-[#ffd700]/20 text-[#ffd700] border border-[#ffd700]/30'
-                                                : 'bg-[#00ffcc]/10 text-[#00ffcc] border border-[#00ffcc]/20'
+                                                : isWeapon
+                                                    ? 'bg-[#ff0055]/10 text-[#ff0055] border border-[#ff0055]/20'
+                                                    : 'bg-[#00ffcc]/10 text-[#00ffcc] border border-[#00ffcc]/20'
                                             }
                                         `}>
                                             {u.stat}
@@ -178,42 +214,66 @@ export default function UpgradeMenu({ onSelect, player }: UpgradeMenuProps) {
 
                                     {/* Description */}
                                     <p className={`
-                                        text-xs md:text-sm leading-relaxed
+                                        text-xs leading-relaxed
                                         ${evo ? 'text-[#ffd700]/80' : 'text-white/50'}
-                                        md:mt-1 line-clamp-2 md:line-clamp-none
+                                        mt-1 h-8
                                     `}>
                                         {evo ? u.evoDesc : u.desc}
                                     </p>
 
+                                    {/* === SYNERGY SECTION === */}
+
+                                    {/* Case A: Weapon - Show what stats scale it */}
+                                    {isWeapon && scalingStats.length > 0 && (
+                                        <div className="flex flex-col items-center gap-1.5 mt-2 w-full">
+                                            <span className="text-[9px] text-white/30 uppercase tracking-widest font-bold">Scales With</span>
+                                            <div className="flex flex-wrap justify-center gap-1.5">
+                                                {scalingStats.map(s => (
+                                                    <div key={s.id} className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md border border-white/5" title={s.desc}>
+                                                        <div className="w-3 h-3 text-white/70"><GameIcon id={s.icon} size={undefined} className="w-full h-full" /></div>
+                                                        <span className="text-[9px] font-bold text-white/70 uppercase tracking-wide">{s.name}</span>
+                                                    </div>
+                                                ))}
+                                                {/* Add "LVL" chip since everything scales with Level */}
+                                                <div className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md border border-white/5" title="Scales with Level">
+                                                    <span className="text-[9px] font-bold text-white/70 uppercase tracking-wide">LEVEL</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Case B: Stat - Show what weapons it improves */}
+                                    {!isWeapon && affectedWeapons.length > 0 && (
+                                        <div className="flex flex-col items-center gap-1.5 mt-2 w-full">
+                                            <span className="text-[9px] text-white/30 uppercase tracking-widest font-bold">Improves</span>
+                                            <div className="flex flex-wrap justify-center gap-1.5">
+                                                {affectedWeapons.map((w, idx) => (
+                                                    <div key={idx} className="flex items-center gap-1.5 bg-[#ff0055]/10 px-2 py-1 rounded-md border border-[#ff0055]/20" title={w.desc}>
+                                                        <div className="w-3 h-3 text-[#ff0055]"><GameIcon id={w.icon} size={undefined} className="w-full h-full" /></div>
+                                                        <span className="text-[9px] font-bold text-[#ff0055] uppercase tracking-wide">{w.name}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Evolution Progress */}
                                     {u.evoName && !evo && evoProgress.next > u.count && (
-                                        <div className="flex flex-col items-start md:items-center gap-1.5 mt-2 md:mt-3 w-full md:border-t md:border-white/5 md:pt-3">
+                                        <div className="flex flex-col items-center gap-1 mt-3 w-full border-t border-white/5 pt-2">
                                             <div className="flex items-center justify-between w-full">
-                                                <p className="text-[9px] md:text-[10px] text-white/40 font-medium uppercase tracking-wider">
-                                                    Evolution Progress
+                                                <p className="text-[9px] text-white/40 font-medium uppercase tracking-wider">
+                                                    Evo Progress
                                                 </p>
-                                                <p className="text-[9px] md:text-[10px] text-[#ffee00] font-bold">
+                                                <p className="text-[9px] text-[#ffee00] font-bold">
                                                     Lv.{evoProgress.next}
                                                 </p>
                                             </div>
-                                            {/* Progress Bar */}
-                                            <div className="w-full h-1.5 md:h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                            <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
                                                 <div
                                                     className="h-full bg-gradient-to-r from-[#ffee00] to-[#ffd700] rounded-full shadow-[0_0_10px_rgba(255,238,0,0.5)]"
                                                     style={{ width: `${evoProgress.percent}%` }}
                                                 />
                                             </div>
-                                            <p className="text-[8px] md:text-[9px] text-[#ffee00]/60 font-medium">
-                                                ✦ {u.evoName}
-                                            </p>
-                                        </div>
-                                    )}
-                                    {evo && (
-                                        <div className="flex items-center gap-2 mt-2">
-                                            <div className="w-2 h-2 bg-[#ffd700] rounded-full animate-pulse" />
-                                            <p className="text-xs text-[#ffd700] font-bold tracking-wider uppercase">
-                                                Ready to Override
-                                            </p>
                                         </div>
                                     )}
                                 </div>

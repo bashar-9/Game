@@ -4,7 +4,7 @@
 
 ### *Outrun the Leak. Optimize the Swarm.*
 
-![Version](https://img.shields.io/badge/version-0x010200-0bcfa8?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-0x020101-0bcfa8?style=for-the-badge)
 ![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=for-the-badge&logo=typescript&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
@@ -29,6 +29,7 @@
 - 🎲 **Roguelike Elements** — Each run is unique with randomized upgrade choices
 - 💎 **Permanent Progression** — Unlock and enhance power-ups across runs
 - 📱 **Cross-Platform** — Play anywhere with responsive touch controls
+- ⚡ **Optimized Core** — Spatial hashing for massive enemy counts
 
 ---
 
@@ -45,17 +46,18 @@
 ### 📈 Upgrade Paths (Code Modules)
 | Module | Effect | Evolution |
 |--------|--------|-----------| 
-| FORK_PROCESS | +1 Thread | **PARALLEL_EXEC** (+2 Threads) |
-| I/O_ACCELERATOR | +30% I/O Speed | **BURST_MODE** (+60% Throughput) |
-| VOLTAGE_SPIKE | +25% Voltage | **POWER_SURGE** (+50% Voltage) |
-| BUS_VELOCITY | +15% Bus Speed | **HYPERTHREADING** (+40% Speed, +50 HP) |
-| POINTER_PIERCERS | +1 Depth | **NULL_TRAVERSAL** (+3 Pierce, +Velocity) |
-| ENCAP_SHIELDING | +150 Buffer | **SANDBOXED_CORE** (+75 HP, 50% Heal) |
-| SECTOR_REBUILD | +5 Repair/sec | **DEFRAG_DAEMON** (+5 Repair/sec) |
-| BUFFER_EXPANSION | +2 Bytes | **HEAP_OVERFLOW** (+2 Size) |
-| RADIUS_REJECTION | +Range/Force/Burn | **KERNEL_PANIC_WAVE** (Massive Radius) |
-| HEURISTIC_LOGIC | +25% Precision | — |
-| BITWISE_BURST | +25% Burst | **STACK_SMASH** (+10% Crit) |
+| FORK_PROCESS | +1 Projectile | **MULTISHOT II** (+2 Projectiles) |
+| I/O_ACCELERATOR | +30% Attack Speed | **BURST_MODE** (+60% Speed) |
+| VOLTAGE_SPIKE | +25% Damage | **POWER_SURGE** (+50% Damage) |
+| BUS_VELOCITY | +15% Speed | **HYPERTHREADING** (+40% Speed, +50 HP) |
+| POINTER_PIERCERS | +1 Pierce | **SPECTRAL PIERCE** (+3 Pierce, +Velocity) |
+| ENCAP_SHIELDING | +150 Max HP | **IRON CORE** (+75 HP, 50% Heal) |
+| SECTOR_REBUILD | +5 HP/sec | **RAPID REPAIR** (+5 HP/sec) |
+| BUFFER_EXPANSION | +1 Bullet Size | **MEGA ROUNDS** (+2 Size) |
+| RADIUS_REJECTION | +Range/Force/Dmg | **NOVA WAVE** (Massive Radius) |
+| ION_ORBS | +1 Orb / Speed | **ELECTRON CLOUD** (+5 Orbs) |
+| HEURISTIC_LOGIC | +25% Crit Chance | **CERTAIN DOOM** (+25% Chance) |
+| BITWISE_BURST | +15% Crit Dmg | **FATAL ERROR** (+30% Crit Dmg) |
 
 ### ⚡ Exploit System
 Collect rare exploits from terminated processes:
@@ -64,7 +66,8 @@ Collect rare exploits from terminated processes:
 |---------|--------|---------------|
 | ⚡ **OVERCLOCK** | 3x Damage & Attack Speed | 15 seconds |
 | 🔑 **PRIVILEGE_ESC** | Complete damage immunity | 15 seconds |
-| 📡 **DATA_SIPHON** | 5x Pickup range | 15 seconds |
+| 📡 **DATA_SIPHON** | Max Pickup range | 15 seconds |
+| 💎 **RNG_EXPLOIT** | +10% Drop Rate (Passive) | — |
 
 ### 🎲 Permanent Upgrades
 Spend lifetime deletion points to permanently enhance exploits:
@@ -83,9 +86,9 @@ Spend lifetime deletion points to permanently enhance exploits:
 ### Difficulty Modes
 | Mode | Enemy HP | Enemy Damage | Spawn Rate |
 |------|----------|--------------|------------|
-| 🟢 **SANDBOX** | 1.0x | 1.0x | 1.0x |
-| 🟡 **PRODUCTION** | 2.2x | 1.7x | 1.5x |
-| 🔴 **KERNEL_PANIC** | 3.5x | 2.5x | 2.0x |
+| 🟢 **SANDBOX** | 1.5x | 1.2x | 1.0x |
+| 🟡 **PRODUCTION** | 3.5x | 2.5x | 1.5x |
+| 🔴 **THE_VOID** | 6.0x | 4.0x | 3.0x |
 
 ### Enemy Types
 | Type | Behavior | Threat Level |
@@ -139,6 +142,7 @@ Spend lifetime deletion points to permanently enhance exploits:
 | **Tailwind CSS** | Utility-first styling |
 | **Zustand** | Lightweight state management |
 | **HTML5 Canvas** | Hardware-accelerated rendering |
+| **Spatial Hash** | O(1) Collision Detection System |
 
 ---
 
@@ -188,8 +192,10 @@ Open **[http://localhost:3000](http://localhost:3000)** and start surviving!
 │   │   ├── Enemy.ts       # Enemy entities
 │   │   ├── Bullet.ts      # Projectile system
 │   │   ├── Pickup.ts      # XP & Power-ups
+│   │   ├── SpatialHash.ts # Collision Grid
 │   │   └── SoundManager.ts
 │   ├── config.ts          # Game balance & settings
+│   ├── maps.ts            # Map definitions (Void, Sandbox, etc)
 │   └── utils.ts           # Helper functions
 │
 └── store/
@@ -211,14 +217,14 @@ BASE_STATS.player = {
   damage: 30,
   attackSpeed: 17,      // Lower = faster
   critChance: 0.25,     // 25%
-  critMultiplier: 1.75  // 175% damage
+  critMultiplier: 2.0   // 200% damage
 }
 
 // Difficulty Multipliers
 DIFFICULTY_SETTINGS = {
-  easy:   { hpMult: 1.0, dmgMult: 1.0, spawnMult: 1.0 },  // SANDBOX
-  medium: { hpMult: 2.2, dmgMult: 1.7, spawnMult: 1.5 },  // PRODUCTION
-  hard:   { hpMult: 3.5, dmgMult: 2.5, spawnMult: 2.0 }   // KERNEL_PANIC
+  easy:   { hpMult: 1.5, dmgMult: 1.2, spawnMult: 1.0 },  // SANDBOX
+  medium: { hpMult: 3.5, dmgMult: 2.5, spawnMult: 1.5 },  // PRODUCTION
+  hard:   { hpMult: 6.0, dmgMult: 4.0, spawnMult: 3.0 }   // THE_VOID
 }
 ```
 
@@ -232,8 +238,8 @@ DIFFICULTY_SETTINGS = {
 |:-----:|:---:|:------|
 | 🟢 | `#00ffcc` | Primary / Cyan / SANDBOX Mode |
 | 🟡 | `#ffee00` | XP / Warnings / PRODUCTION Mode |
-| 🔴 | `#ff0055` | Danger / Enemies / KERNEL_PANIC Mode |
-| 🟣 | `#aa00ff` | Tank Enemies / Rare |
+| 🔴 | `#aa00ff` | Danger / Tank Enemies / THE_VOID Mode |
+| 🟣 | `#ff0055` | Standard Enemy |
 | ⚫ | `#0a0a12` | Background |
 
 </div>
@@ -244,6 +250,7 @@ DIFFICULTY_SETTINGS = {
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| **0x020101** | Feb 13, 2026 | The Void map, Balance Overhaul, Spatial Hash, SVG Icons |
 | **0x010200** | Jan 2026 | 0xSWARM rebrand, cyber-glitch aesthetic |
 | **1.1.0** | Jan 2026 | Power-up upgrade screen, Hyperdrive rename |
 | **1.0.0** | Dec 2025 | Initial release |
