@@ -4,7 +4,7 @@
 
 ### *Outrun the Leak. Optimize the Swarm.*
 
-![Version](https://img.shields.io/badge/version-0x020101-0bcfa8?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-0x020201-0bcfa8?style=for-the-badge)
 ![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=for-the-badge&logo=typescript&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
@@ -35,29 +35,37 @@
 
 ## ✨ Features
 
-### 🔫 Combat System
-| Feature | Description |
-|---------|-------------|
-| **Auto-Fire** | Continuous projectile stream towards nearest threat |
-| **Critical Hits** | Up to 100% crit chance with massive damage multipliers |
-| **Pierce** | Bullets pass through multiple enemies |
-| **Radius Rejection** | AOE damage aura that pushes and burns enemies |
+### ⚔️ Modular Combat System
+Weapons are independent modules managed by the `WeaponManager`.
+
+| Weapon | Description |
+|--------|-------------|
+| **Main Gun** | Auto-targeting projectile stream. Scales with Multishot, Speed, Pierce. |
+| **Ion Orbs** | Orbital plasma defense. Scales with Count and Speed. |
+| **Repulsion Field** | AOE force field. Pushes enemies away. Scales with Range and Force. |
+
+**Core Mechanics:**
+- **Auto-Fire**: Identifying nearest targets via Spatial Hash.
+- **Critical Hits**: Calculating damage multipliers based on stats.
+- **Pierce**: Projectiles continuing through targets based on penetration rating.
 
 ### 📈 Upgrade Paths (Code Modules)
 | Module | Effect | Evolution |
 |--------|--------|-----------| 
-| FORK_PROCESS | +1 Projectile | **MULTISHOT II** (+2 Projectiles) |
-| I/O_ACCELERATOR | +30% Attack Speed | **BURST_MODE** (+60% Speed) |
-| VOLTAGE_SPIKE | +25% Damage | **POWER_SURGE** (+50% Damage) |
-| BUS_VELOCITY | +15% Speed | **HYPERTHREADING** (+40% Speed, +50 HP) |
-| POINTER_PIERCERS | +1 Pierce | **SPECTRAL PIERCE** (+3 Pierce, +Velocity) |
-| ENCAP_SHIELDING | +150 Max HP | **IRON CORE** (+75 HP, 50% Heal) |
-| SECTOR_REBUILD | +5 HP/sec | **RAPID REPAIR** (+5 HP/sec) |
-| BUFFER_EXPANSION | +1 Bullet Size | **MEGA ROUNDS** (+2 Size) |
-| RADIUS_REJECTION | +Range/Force/Dmg | **NOVA WAVE** (Massive Radius) |
-| ION_ORBS | +1 Orb / Speed | **ELECTRON CLOUD** (+5 Orbs) |
-| HEURISTIC_LOGIC | +25% Crit Chance | **CERTAIN DOOM** (+25% Chance) |
-| BITWISE_BURST | +15% Crit Dmg | **FATAL ERROR** (+30% Crit Dmg) |
+| Module | Effect | Evolution |
+|--------|--------|-----------| 
+| **MULTISHOT** | +1 Projectile | **MULTISHOT II** (+2 Projectiles) |
+| **ATTACK SPEED** | +30% Attack Speed | **BURST_MODE** (+60% Speed) |
+| **DAMAGE** | +25% Damage | **POWER_SURGE** (+50% Damage) |
+| **MOVE SPEED** | +15% Speed | **HYPERTHREADING** (+40% Speed, +50 HP) |
+| **PIERCE** | +1 Pierce | **SPECTRAL PIERCE** (+3 Pierce, +Velocity) |
+| **MAX HP** | +150 Max HP | **IRON CORE** (+75 HP, 50% Heal) |
+| **REGEN** | +5 HP/sec | **RAPID REPAIR** (+5 HP/sec) |
+| **BULLET SIZE** | +1 Bullet Size | **MEGA ROUNDS** (+2 Size) |
+| **REPULSION FIELD** | +Range/Force/Dmg | **NOVA WAVE** (Massive Radius) |
+| **ION ORBS** | +1 Orb / Speed | **ELECTRON CLOUD** (+5 Orbs, High Speed) |
+| **CRIT CHANCE** | +25% Crit Chance | **CERTAIN DOOM** (+25% Chance) |
+| **CRIT DAMAGE** | +15% Crit Dmg | **FATAL ERROR** (+30% Crit Dmg) |
 
 ### ⚡ Exploit System
 Collect rare exploits from terminated processes:
@@ -138,11 +146,11 @@ Spend lifetime deletion points to permanently enhance exploits:
 | Technology | Purpose |
 |------------|---------|
 | **Next.js 14** | React framework with App Router |
-| **TypeScript** | Type-safe game engine |
-| **Tailwind CSS** | Utility-first styling |
-| **Zustand** | Lightweight state management |
-| **HTML5 Canvas** | Hardware-accelerated rendering |
+| **TypeScript** | Type-safe game engine with Modular Architecture |
+| **Zustand** | State management with Local Storage persistence |
+| **HTML5 Canvas** | Hardware-accelerated rendering (Double Buffered) |
 | **Spatial Hash** | O(1) Collision Detection System |
+| **Design Patterns** | Component-Entity-System (Lite), Object Pooling, Managers |
 
 ---
 
@@ -172,35 +180,25 @@ Open **[http://localhost:3000](http://localhost:3000)** and start surviving!
 ```
 0xswarm/
 ├── app/                    # Next.js App Router
-│   ├── page.tsx           # Main game page
-│   └── globals.css        # Global styles
-│
-├── components/
-│   ├── game/
-│   │   └── GameCanvas.tsx # Canvas wrapper component
-│   └── ui/
-│       ├── StartScreen.tsx
-│       ├── GameOverScreen.tsx
-│       ├── UpgradeMenu.tsx
-│       ├── PowerUpUpgradeScreen.tsx
-│       └── HUD.tsx
+├── components/             # React UI Components
+│   ├── game/               # Game Canvas & Overlay
+│   └── ui/                 # HUD, Menus, Screens
 │
 ├── lib/
 │   ├── game/
-│   │   ├── Engine.ts      # Core game loop
-│   │   ├── Player.ts      # Player entity
-│   │   ├── Enemy.ts       # Enemy entities
-│   │   ├── Bullet.ts      # Projectile system
-│   │   ├── Pickup.ts      # XP & Power-ups
-│   │   ├── SpatialHash.ts # Collision Grid
-│   │   └── SoundManager.ts
-│   ├── config.ts          # Game balance & settings
-│   ├── maps.ts            # Map definitions (Void, Sandbox, etc)
-│   └── utils.ts           # Helper functions
+│   │   ├── Engine.ts       # Main Orchestrator
+│   │   ├── managers/       # State Systems (Time, Score, Difficulty)
+│   │   ├── weapons/        # Weapon Logic & Manager
+│   │   ├── enemies/        # Enemy Logic & Spawning
+│   │   ├── upgrades/       # Upgrade Definitions & Manager
+│   │   ├── rendering/      # Visuals & Renderers
+│   │   └── types.ts        # Shared Interfaces
+│   │
+│   └── config.ts           # Game Balance Settings
 │
 └── store/
     ├── useGameStore.ts           # Runtime game state
-    └── PowerUpProgressionStore.ts # Persistent progression
+    └── PowerUpProgressionStore.ts # Persistent progression (Local Storage)
 ```
 
 ---
@@ -214,10 +212,11 @@ All game balance can be tuned in `lib/config.ts`:
 BASE_STATS.player = {
   baseHp: 300,
   baseSpeed: 4,
-  damage: 30,
   attackSpeed: 17,      // Lower = faster
+  damage: 30,
   critChance: 0.25,     // 25%
   critMultiplier: 2.0   // 200% damage
+  // ...mobile adjustments included
 }
 
 // Difficulty Multipliers
@@ -250,6 +249,7 @@ DIFFICULTY_SETTINGS = {
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| **0x020201** | Feb 16, 2026 | **Core Re-architecture**: Modular Managers, Weapon/Enemy/Upgrade Separation |
 | **0x020101** | Feb 13, 2026 | The Void map, Balance Overhaul, Spatial Hash, SVG Icons |
 | **0x010200** | Jan 2026 | 0xSWARM rebrand, cyber-glitch aesthetic |
 | **1.1.0** | Jan 2026 | Power-up upgrade screen, Hyperdrive rename |

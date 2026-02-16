@@ -1,23 +1,14 @@
 import { BASE_STATS, DIFFICULTY_SETTINGS, CONFIG, POWERUP_DURATIONS } from '../config';
 import { Bullet } from './Bullet';
-import { Enemy } from './Enemy';
-import { JoystickState } from './types';
+import { Enemy } from './enemies/Enemy';
+import { JoystickState, PlayerCallbacks, IPlayer, IEnemy } from './types';
 import { InputState } from './InputManager';
 import { soundManager } from './SoundManager';
-import { createNeonSprite, CACHED_SPRITES } from './AssetCache';
-
-
-export interface PlayerCallbacks {
-    onUpdateStats: (hp: number, maxHp: number, xp: number, xpToNext: number, level: number, damage: number) => void;
-    onUpdateActivePowerups: (active: Record<string, number>, maxDurations: Record<string, number>) => void;
-    onLevelUp: () => void;
-    onGameOver: () => void;
-    onCreateParticles: (x: number, y: number, count: number, color: string) => void;
-}
+import { WeaponManager } from './weapons/WeaponManager';
 
 export type PowerupType = 'double_stats' | 'invulnerability' | 'magnet';
 
-export class Player {
+export class Player implements IPlayer {
     x: number;
     y: number;
     radius: number;
@@ -30,7 +21,7 @@ export class Player {
     xpToNext: number;
     color: string;
 
-    attackCooldown: number;
+
     attackSpeed: number;
     damage: number;
     projectileCount: number;
@@ -60,13 +51,14 @@ export class Player {
 
     rotation: number;
 
+    weaponManager: WeaponManager;
+
     // Hazard effect properties
     slowMultiplier: number = 1.0;
     teleportCooldown: number = 0;
     teleportInvincibility: number = 0;
 
-    static CACHE_SIZE = 80; // Larger for player
-    static CACHE_HALF = 40;
+
 
     constructor(canvasWidth: number, canvasHeight: number, diffMode: 'easy' | 'medium' | 'hard', callbacks: PlayerCallbacks) {
         this.x = canvasWidth / 2;
@@ -90,7 +82,7 @@ export class Player {
         this.xpToNext = stats.xpToNext;
         this.color = CONFIG.COLORS.primary;
 
-        this.attackCooldown = 0;
+
         this.attackSpeed = stats.attackSpeed;
         this.damage = stats.damage;
         this.projectileCount = stats.projectileCount;
@@ -103,9 +95,9 @@ export class Player {
         this.critChance = stats.critChance;
         this.critMultiplier = stats.critMultiplier;
 
+        this.weaponManager = new WeaponManager(this);
+
         this.recalculateStats();
-        // Preload
-        this.getSprite();
     }
 
     recalculateStats() {
@@ -148,7 +140,7 @@ export class Player {
 
     // ... (existing properties)
     ionOrbsLevel: number = 0;
-    ionOrbsAngle: number = 0;
+
 
     // ... (existing helper methods)
 
@@ -194,23 +186,8 @@ export class Player {
             this.rotation = Math.atan2(my, mx);
         }
 
-        // Attack
-        if (this.attackCooldown > 0) this.attackCooldown -= delta;
-        else {
-            const target = this.findNearestEnemy(enemies, worldWidth, worldHeight);
-            if (target) {
-                // Optional: Override rotation to face target when shooting
-                // this.rotation = Math.atan2(target.y - this.y, target.x - this.x); 
-                this.shoot(target, spawnBullet);
-                this.attackCooldown = this.attackSpeed;
-            }
-        }
-
-        // Repulsion Field
-        if (this.repulsionLevel > 0) this.applyRepulsionField(enemies, frameCount, delta);
-
-        // Ion Orbs
-        if (this.ionOrbsLevel && this.ionOrbsLevel > 0) this.updateIonOrbs(enemies, frameCount, delta);
+        // Weapon System
+        this.weaponManager.update(delta, enemies, frameCount, worldWidth, worldHeight, spawnBullet);
 
         if (this.invincibilityTimer > 0) this.invincibilityTimer -= delta;
 
@@ -237,124 +214,7 @@ export class Player {
         }
     }
 
-    applyRepulsionField(enemies: Enemy[], frameCount: number, delta: number = 1) {
-        const stats = BASE_STATS.player;
-        const levelCapArea = Math.min(this.repulsionLevel, 8); // Buffed: Cap raised to 8 (was 4)
-        const radiusGrowth = levelCapArea * 20;
-        // Synergy: Range scales with Bullet Size
-        const sizeBonus = (this.bulletSize || 0) * 4;
-        const baseRange = CONFIG.IS_MOBILE ? stats.repulsionBaseRangeMobile : stats.repulsionBaseRange;
-        const range = baseRange + radiusGrowth + sizeBonus;
-
-        // Buffed: Force starts at 0.5 + 5% per level
-        const forceMult = 0.5 + (this.repulsionLevel * 0.05);
-        const forceBase = stats.repulsionForce * forceMult;
-
-        // "Juggernaut" Synergy: Damage scales with Max HP
-        const hpBonusDamage = Math.floor(this.maxHp * 0.05);
-
-        // "Juggernaut" Synergy: Pulse Rate scales with Regen
-        // Base rate 15 frames. Fast regen = faster ticks.
-        // Formula: 15 / (1 + Regen * 0.05). If Regen=20 -> 1 + 1 = 2 -> 7.5 frames (Double speed)
-        const tickRate = Math.max(5, Math.floor(15 / (1 + this.regen * 0.05)));
-
-        const shouldDamage = frameCount % tickRate === 0;
-
-        for (const e of enemies) {
-            const dx = e.x - this.x;
-            const dy = e.y - this.y;
-            const distSq = dx * dx + dy * dy;
-            const rangeSq = (range + e.radius) * (range + e.radius);
-
-            if (distSq < rangeSq) {
-                const dist = Math.sqrt(distSq);
-                const nx = dx / dist;
-                const ny = dy / dist;
-
-                const effectiveForce = (forceBase / e.mass) * delta;
-                e.pushX += nx * effectiveForce;
-                e.pushY += ny * effectiveForce;
-
-                // Burn damage
-                if (shouldDamage) {
-                    // New Formula: 30% Base + 10% per level + HP Bonus
-                    let baseDmg = this.damage * (0.30 + (this.repulsionLevel * 0.10));
-                    let totalDmg = Math.max(1, Math.floor(baseDmg + hpBonusDamage));
-
-                    e.takeHit(totalDmg);
-                    if (Math.random() > 0.7) {
-                        this.callbacks.onCreateParticles(e.x, e.y, 1, '#ff5500');
-                    }
-                }
-            }
-        }
-    }
-
-    updateIonOrbs(enemies: Enemy[], frameCount: number, delta: number) {
-        // Buffed Count: Start with 2 Orbs at Level 1 (Base 1 + Level 1)
-        // Synergy: +1 Orb per Projectile Count (Base is 1)
-        const count = 1 + (this.ionOrbsLevel || 0) + (this.projectileCount - 1);
-
-        // Synergy: Speed scales with Move Speed
-        // Buffed Speed: 0.10 rad/frame base (was 0.08) -> Even Faster spin
-        const speedMult = this.speed / this.baseSpeed;
-        const orbitSpeed = 0.10 * speedMult * delta;
-        this.ionOrbsAngle += orbitSpeed;
-
-        // Synergy: Size scales with Bullet Size
-        // Buffed Base Size: 12 (was 8) for better visibility
-        const orbSize = 12 + (this.bulletSize * 1.5);
-        // Buffed Radius: Further out to be a mid-sized zone
-        const orbitRadius = this.radius + 100 + (orbSize * 3);
-
-        // REWORK: High Frequency "Damage Ring"
-        // 1. Damage: Scales 5% per level (Base 7% of Player Damage)
-        // Formula: PlayerDmg * (0.07 + (0.05 * Level))
-        const dmgMult = 0.07 + ((this.ionOrbsLevel || 0) * 0.05);
-        const dmg = Math.max(1, Math.floor(this.damage * dmgMult));
-
-        // Tick Rate: Every 2 frames
-        const shouldDamage = frameCount % 2 === 0;
-
-        // Knockback: Starts at 0.25 + 2% per level
-        const knockbackForce = 0.25 + ((this.ionOrbsLevel || 0) * 0.02);
-
-        for (let i = 0; i < count; i++) {
-            const angle = this.ionOrbsAngle + (i * (Math.PI * 2 / count));
-            const ox = this.x + Math.cos(angle) * orbitRadius;
-            const oy = this.y + Math.sin(angle) * orbitRadius;
-
-            if (shouldDamage) {
-                for (const e of enemies) {
-                    const dx = e.x - ox;
-                    const dy = e.y - oy;
-                    const distSq = dx * dx + dy * dy;
-
-                    // Simple circle collision
-                    if (distSq < (orbSize + e.radius) * (orbSize + e.radius)) {
-                        // Apply Kickback (Recoil)
-                        const dist = Math.sqrt(distSq);
-                        if (dist > 0) {
-                            const nx = dx / dist;
-                            const ny = dy / dist;
-                            const impulse = (knockbackForce / e.mass) * delta;
-                            e.pushX += nx * impulse;
-                            e.pushY += ny * impulse;
-                        }
-
-                        e.takeHit(dmg);
-
-                        // Reduce particle spam (only 25% chance per hit)
-                        if (Math.random() < 0.25) {
-                            this.callbacks.onCreateParticles(e.x, e.y, 1, '#00ccff');
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    findNearestEnemy(enemies: Enemy[], canvasWidth: number, canvasHeight: number) {
+    findNearestEnemy(enemies: IEnemy[], canvasWidth: number, canvasHeight: number): IEnemy | null {
         let nearest = null;
         let minDist = Infinity;
         for (const e of enemies) {
@@ -400,38 +260,9 @@ export class Player {
         return { x, y };
     }
 
-    shoot(target: Enemy, spawnBullet: (x: number, y: number, vx: number, vy: number, damage: number, pierce: number, size: number, isCrit: boolean) => void) {
-        const angle = Math.atan2(target.y - this.y, target.x - this.x);
 
-        // Center-Anchored Spread Logic (Option 2)
-        // 1st bullet: Center (0)
-        // 2nd bullet: +Spread
-        // 3rd bullet: -Spread
-        // 4th bullet: +2*Spread ...
 
-        const spreadStep = 0.15; // ~8.5 degrees spacing
 
-        for (let i = 0; i < this.projectileCount; i++) {
-            let offsetMultiplier = 0;
-            if (i > 0) {
-                // i=1 -> 1, i=2 -> -1, i=3 -> 2, i=4 -> -2
-                offsetMultiplier = Math.ceil(i / 2);
-                if (i % 2 === 0) offsetMultiplier *= -1;
-            }
-
-            const currentAngle = angle + (offsetMultiplier * spreadStep);
-
-            const vx = Math.cos(currentAngle) * this.bulletSpeed;
-            const vy = Math.sin(currentAngle) * this.bulletSpeed;
-
-            const isCrit = Math.random() < this.critChance;
-            const finalDamage = isCrit ? Math.floor(this.damage * this.critMultiplier) : this.damage;
-
-            spawnBullet(this.x, this.y, vx, vy, finalDamage, this.pierce, this.bulletSize, isCrit);
-        }
-        // Lower volume for rapid fire, add pitch variance of 0.1
-        soundManager.play('shoot', 'sfx', 0.15, false, 0.1);
-    }
 
     gainXp(amount: number) {
         this.xp += amount;
@@ -484,210 +315,5 @@ export class Player {
         return this.powerups['invulnerability'] > 0;
     }
 
-    getSprite(): HTMLCanvasElement {
-        const key = 'player_ship';
-        if (CACHED_SPRITES[key]) return CACHED_SPRITES[key];
 
-        const size = Player.CACHE_SIZE;
-        const half = Player.CACHE_HALF;
-
-        CACHED_SPRITES[key] = createNeonSprite(size, size, (ctx, w, h) => {
-            ctx.translate(half, half);
-
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = this.color;
-
-            // Draw Fighter Jet Shape
-            const r = this.radius * 1.5;
-            ctx.beginPath();
-            ctx.moveTo(r, 0);
-            ctx.lineTo(-r * 0.6, r * 0.8);
-            ctx.lineTo(-r * 0.3, 0);
-            ctx.lineTo(-r * 0.6, -r * 0.8);
-            ctx.closePath();
-
-            ctx.fillStyle = '#001a1a';
-            ctx.fill();
-
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = this.color;
-            ctx.stroke();
-
-            // Engine Glow
-            ctx.shadowBlur = 25;
-            ctx.shadowColor = '#00ffff';
-            ctx.fillStyle = '#ccffff';
-            ctx.beginPath();
-            ctx.arc(-r * 0.4, 0, r * 0.15, 0, Math.PI * 2);
-            ctx.fill();
-        });
-
-        return CACHED_SPRITES[key];
-    }
-
-    getIonOrbSprite(size: number): HTMLCanvasElement {
-        // Cache by size to handle growing orbs (bucket by integer size)
-        const intSize = Math.floor(size);
-        const key = `ion_orb_${intSize}`;
-        if (CACHED_SPRITES[key]) return CACHED_SPRITES[key];
-
-        const canvasSize = intSize * 4; // Allowance for glow
-        const half = canvasSize / 2;
-
-        CACHED_SPRITES[key] = createNeonSprite(canvasSize, canvasSize, (ctx, w, h) => {
-            ctx.translate(half, half);
-
-            // Core
-            ctx.beginPath();
-            ctx.arc(0, 0, intSize, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffffff';
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = '#00ccff';
-            ctx.fill();
-
-            // Outer Ring
-            ctx.beginPath();
-            ctx.arc(0, 0, intSize * 0.7, 0, Math.PI * 2);
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = '#00ffff';
-            ctx.stroke();
-
-            // Aura
-            ctx.beginPath();
-            ctx.arc(0, 0, intSize * 1.5, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(0, 204, 255, 0.2)';
-            ctx.fill();
-        });
-
-        return CACHED_SPRITES[key];
-    }
-
-
-    draw(ctx: CanvasRenderingContext2D, frameCount: number) {
-        // Invulnerability Shield Visual
-        if (this.powerups['invulnerability'] > 0) {
-            const shieldRadius = this.radius * 4.5;
-            const pulseScale = 1 + Math.sin(frameCount * 0.15) * 0.1;
-            const effectiveRadius = shieldRadius * pulseScale;
-
-            // Outer glow
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, effectiveRadius + 10, 0, Math.PI * 2);
-            const outerAlpha = 0.15 + Math.sin(frameCount * 0.1) * 0.05;
-            ctx.fillStyle = `rgba(255, 255, 0, ${outerAlpha})`;
-            ctx.fill();
-
-            // Main shield ring
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, effectiveRadius, 0, Math.PI * 2);
-            ctx.lineWidth = 3;
-            const ringAlpha = 0.6 + Math.sin(frameCount * 0.2) * 0.2;
-            ctx.strokeStyle = `rgba(255, 255, 100, ${ringAlpha})`;
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = '#ffff00';
-            ctx.stroke();
-
-            // Inner shimmer
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, effectiveRadius * 0.85, 0, Math.PI * 2);
-            ctx.lineWidth = 1;
-            ctx.strokeStyle = `rgba(255, 255, 200, ${ringAlpha * 0.5})`;
-            ctx.stroke();
-
-            ctx.shadowBlur = 0;
-        }
-
-        // Repulsion Visual (Dynamic, keep drawing it)
-        if (this.repulsionLevel > 0) {
-            const stats = BASE_STATS.player;
-            const levelCapArea = Math.min(this.repulsionLevel, 8); // Buffed: Match logic in applyRepulsionField
-            const radiusGrowth = levelCapArea * 20;
-            const baseRange = CONFIG.IS_MOBILE ? stats.repulsionBaseRangeMobile : stats.repulsionBaseRange;
-            const range = baseRange + radiusGrowth;
-
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, range, 0, Math.PI * 2);
-            const alpha = 0.1 + (Math.sin(frameCount * 0.1) * 0.05);
-            ctx.fillStyle = `rgba(0, 255, 204, ${alpha})`;
-            ctx.fill();
-            ctx.lineWidth = 1;
-            ctx.strokeStyle = `rgba(0, 255, 204, ${alpha + 0.2})`;
-            ctx.stroke();
-        }
-
-        // Ion Orbs Visual
-        if (this.ionOrbsLevel && this.ionOrbsLevel > 0) {
-            const count = 1 + (this.ionOrbsLevel || 0) + (this.projectileCount - 1); // Fixed: Match update logic (Base 1)
-            // Match updateIonOrbs logic:
-            // const orbSize = 12 + (this.bulletSize * 1.5);
-            // const orbitRadius = this.radius + 100 + (orbSize * 3);
-
-            const orbSize = 12 + (this.bulletSize * 1.5);
-            const orbitRadius = this.radius + 100 + (orbSize * 3);
-
-            const sprite = this.getIonOrbSprite(orbSize);
-            const halfSprite = orbSize * 2; // Sprite is roughly 4x radius in cache logic, so half is 2x radius
-
-            for (let i = 0; i < count; i++) {
-                const angle = this.ionOrbsAngle + (i * (Math.PI * 2 / count));
-                const ox = this.x + Math.cos(angle) * orbitRadius;
-                const oy = this.y + Math.sin(angle) * orbitRadius;
-
-                // Trail effect?
-                ctx.save();
-                ctx.translate(ox, oy);
-                // Rotate sprite to face direction of travel? (Tangent)
-                ctx.rotate(angle + Math.PI / 2);
-                ctx.drawImage(sprite, -halfSprite, -halfSprite);
-                ctx.restore();
-            }
-        }
-
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.rotate(this.rotation);
-
-        // Flash if invincible
-        if (this.invincibilityTimer > 0 && Math.floor(frameCount / 4) % 2 === 0) {
-            ctx.globalAlpha = 0.5;
-        }
-
-        const sprite = this.getSprite();
-        ctx.drawImage(sprite, -Player.CACHE_HALF, -Player.CACHE_HALF);
-
-        ctx.restore();
-
-        // Draw Powerup Indicators (Bars)
-        let barYOffset = 0;
-        const barWidth = 40;
-        const barHeight = 4;
-
-        (Object.keys(this.powerups) as PowerupType[]).forEach(key => {
-            const timeLeft = this.powerups[key];
-            if (timeLeft > 0) {
-                const maxTime = this.activeMaxDurations[key] || POWERUP_DURATIONS[key] || 1;
-                const pct = Math.max(0, timeLeft / maxTime);
-
-                const color = key === 'double_stats' ? '#ff0000' :
-                    key === 'invulnerability' ? '#ffff00' : '#0000ff';
-
-                // Bar Background
-                ctx.fillStyle = 'rgba(0,0,0,0.5)';
-                ctx.fillRect(this.x - barWidth / 2, this.y - this.radius - 15 - barYOffset, barWidth, barHeight);
-
-                // Bar Progress
-                ctx.fillStyle = color;
-                ctx.fillRect(this.x - barWidth / 2, this.y - this.radius - 15 - barYOffset, barWidth * pct, barHeight);
-
-                // Border
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(this.x - barWidth / 2, this.y - this.radius - 15 - barYOffset, barWidth, barHeight);
-
-                barYOffset += 6; // Stack bars upwards or downwards? 
-                // Let's stack upwards:
-                // Actually the current logic subtracts offset, so it stacks upwards (y becomes smaller)
-            }
-        });
-    }
 }
