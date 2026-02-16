@@ -42,7 +42,7 @@ export class RepulsionField implements Weapon {
                 e.pushY += ny * effectiveForce;
 
                 if (shouldDamage) {
-                    let baseDmg = this.player.damage * (0.30 + (this.player.repulsionLevel * 0.10));
+                    let baseDmg = this.player.damage * (0.40 + (this.player.repulsionLevel * 0.10));
                     let totalDmg = Math.max(1, Math.floor(baseDmg + hpBonusDamage));
 
                     e.takeHit(totalDmg);

@@ -20,7 +20,7 @@ export class IonOrbs implements Weapon {
         const orbSize = 12 + (this.player.bulletSize * 1.5);
         const orbitRadius = this.player.radius + 100 + (orbSize * 3);
 
-        const dmgMult = 0.07 + ((this.player.ionOrbsLevel || 0) * 0.05);
+        const dmgMult = 0.10 + ((this.player.ionOrbsLevel || 0) * 0.05);
         const dmg = Math.max(1, Math.floor(this.player.damage * dmgMult));
 
         const shouldDamage = frameCount % 2 === 0;

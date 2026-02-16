@@ -43,7 +43,7 @@ export const POWERUP_UPGRADE_COSTS = [
     10000, // Level 7→8
     25000, // Level 8→9
     50000, // Level 9→10
-    999999 // Level 10 is max
+    75000 // Level 10 is max
 ];
 
 export const POWERUP_INFO = {
@@ -92,17 +92,17 @@ export const BASE_STATS = {
         radius: 12, // Mobile check will happen in logic or we assume desktop default
         radiusMobile: 8,
         baseSpeed: 4,
-        baseHp: 300,
+        baseHp: 400,
         xpToNext: 50,
-        attackSpeed: 17, // Buffed: Faster firing (was 18)
-        damage: 30,
+        attackSpeed: 16, // Buffed: Faster firing (was 18)
+        damage: 35,
         projectileCount: 1,
         pierce: 1,
         bulletSpeed: 16,
         bulletSize: 5,
         bulletSizeMobile: 3,
         pickupRange: 220,
-        regen: 3,
+        regen: 4,
         repulsionBaseRange: 90,
         repulsionBaseRangeMobile: 70,
         repulsionForce: 0.15,
