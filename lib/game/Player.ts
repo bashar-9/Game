@@ -246,8 +246,8 @@ export class Player {
         const baseRange = CONFIG.IS_MOBILE ? stats.repulsionBaseRangeMobile : stats.repulsionBaseRange;
         const range = baseRange + radiusGrowth + sizeBonus;
 
-        // Buffed: Force scales by 5% per level (Base * (1 + 0.05 * Level))
-        const forceMult = 1 + (this.repulsionLevel * 0.05);
+        // Buffed: Force starts at 0.5 + 5% per level
+        const forceMult = 0.5 + (this.repulsionLevel * 0.05);
         const forceBase = stats.repulsionForce * forceMult;
 
         // "Juggernaut" Synergy: Damage scales with Max HP
@@ -308,16 +308,16 @@ export class Player {
         const orbitRadius = this.radius + 100 + (orbSize * 3);
 
         // REWORK: High Frequency "Damage Ring"
-        // 1. Damage: Scales 25% per level (Base 60% of Player Damage)
-        // Formula: PlayerDmg * (0.60 + (0.25 * Level))
-        const dmgMult = 0.60 + ((this.ionOrbsLevel || 0) * 0.25);
+        // 1. Damage: Scales 5% per level (Base 7% of Player Damage)
+        // Formula: PlayerDmg * (0.07 + (0.05 * Level))
+        const dmgMult = 0.07 + ((this.ionOrbsLevel || 0) * 0.05);
         const dmg = Math.max(1, Math.floor(this.damage * dmgMult));
 
         // Tick Rate: Every 2 frames
         const shouldDamage = frameCount % 2 === 0;
 
-        // Knockback: Constant "Drag" force
-        const knockbackForce = 1.1 + ((this.ionOrbsLevel || 0) * 0.10);
+        // Knockback: Starts at 0.25 + 2% per level
+        const knockbackForce = 0.25 + ((this.ionOrbsLevel || 0) * 0.02);
 
         for (let i = 0; i < count; i++) {
             const angle = this.ionOrbsAngle + (i * (Math.PI * 2 / count));
@@ -617,9 +617,14 @@ export class Player {
 
         // Ion Orbs Visual
         if (this.ionOrbsLevel && this.ionOrbsLevel > 0) {
-            const count = (this.ionOrbsLevel || 0) + (this.projectileCount - 1);
-            const orbSize = 8 + (this.bulletSize * 1.5);
-            const orbitRadius = this.radius + 50 + (orbSize * 2);
+            const count = 1 + (this.ionOrbsLevel || 0) + (this.projectileCount - 1); // Fixed: Match update logic (Base 1)
+            // Match updateIonOrbs logic:
+            // const orbSize = 12 + (this.bulletSize * 1.5);
+            // const orbitRadius = this.radius + 100 + (orbSize * 3);
+
+            const orbSize = 12 + (this.bulletSize * 1.5);
+            const orbitRadius = this.radius + 100 + (orbSize * 3);
+
             const sprite = this.getIonOrbSprite(orbSize);
             const halfSprite = orbSize * 2; // Sprite is roughly 4x radius in cache logic, so half is 2x radius
 

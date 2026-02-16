@@ -288,8 +288,9 @@ export class Engine {
         // Density scaling (bounded)
         const densityCap = Math.max(1, this.difficulty);
 
-        // Hard enemy cap — scales with difficulty, maxes at 600 for INTENSE swarms
-        const maxEnemies = Math.min(600, 80 + Math.floor(this.difficulty * 10));
+        // Hard enemy cap — Time-based (120 + 0.8 * seconds) -> ~600 at 10 mins
+        // NO HARD CAP (User Request)
+        const maxEnemies = 120 + (this.gameTime * 0.8);
 
         // Spawn rate cap at 0.55/frame (~33 enemies/sec max) — chaotic but bounded
         const spawnChance = Math.min(0.55, 0.02 * settings.spawnMult * densityCap * earlyGameRamp);
